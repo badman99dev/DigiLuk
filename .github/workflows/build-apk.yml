@@ -62,14 +62,17 @@ jobs:
       - name: Grant gradlew permission
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK
-        run: flutter build apk --debug --no-tree-shake-icons
+      - name: Build Release APK (split per ABI for smaller size)
+        run: flutter build apk --release --split-per-abi --no-tree-shake-icons
 
       - name: Upload APK to TempServ
         env:
           TEMPSERV_TOKEN: ${{ secrets.TEMPSERV_TOKEN }}
         run: |
-          APK_PATH=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
+          APK_PATH=$(find build/app/outputs/flutter-apk -name "*arm64*.apk" | head -1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
+          fi
           echo "Found APK at: $APK_PATH"
           ls -lh "$APK_PATH"
           
