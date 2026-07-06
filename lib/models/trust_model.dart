@@ -1,4 +1,4 @@
-enum TrustType { general, committee, ngo, kitty }
+enum TrustType { general, committee, ngo, kitty, business, tuition, gym }
 
 enum MemberRole { creator, manager, member }
 

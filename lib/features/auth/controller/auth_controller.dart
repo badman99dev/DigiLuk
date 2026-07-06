@@ -9,9 +9,9 @@ final authControllerProvider = Provider((ref) {
   return AuthController(authRepository: authRepository, ref: ref);
 });
 
-final userDataAuthProvider = FutureProvider((ref) {
+final userDataAuthProvider = StreamProvider((ref) {
   final authController = ref.watch(authControllerProvider);
-  return authController.getUserData();
+  return authController.userDataStream();
 });
 
 class AuthController {
@@ -22,6 +22,10 @@ class AuthController {
   Future<UserModel?> getUserData() async {
     UserModel? user = await authRepository.getCurrentUserData();
     return user;
+  }
+
+  Stream<UserModel?> userDataStream() {
+    return authRepository.userDataStream();
   }
 
   Future<void> signInWithGoogle(BuildContext context) {

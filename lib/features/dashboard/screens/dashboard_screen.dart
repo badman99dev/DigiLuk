@@ -106,6 +106,15 @@ class DashboardScreen extends ConsumerWidget {
       case TrustType.kitty:
         typeIcon = Icons.celebration;
         break;
+      case TrustType.business:
+        typeIcon = Icons.store;
+        break;
+      case TrustType.tuition:
+        typeIcon = Icons.school;
+        break;
+      case TrustType.gym:
+        typeIcon = Icons.fitness_center;
+        break;
     }
 
     return Card(

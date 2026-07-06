@@ -10,6 +10,9 @@ import 'package:digiluk/features/members/screens/members_screen.dart';
 import 'package:digiluk/features/trust_settings/screens/trust_settings_screen.dart';
 import 'package:digiluk/features/audit_log/screens/audit_log_screen.dart';
 import 'package:digiluk/features/transactions/screens/transactions_screen.dart';
+import 'package:digiluk/features/customers/screens/customers_list_screen.dart';
+import 'package:digiluk/features/customers/screens/customer_detail_screen.dart';
+import 'package:digiluk/features/customers/screens/add_customer_screen.dart';
 import 'package:digiluk/models/transaction_model.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -62,6 +65,25 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       final trustId = settings.arguments as String;
       return MaterialPageRoute(
         builder: (context) => TransactionsScreen(trustId: trustId),
+      );
+    case CustomersListScreen.routeName:
+      final trustId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => CustomersListScreen(trustId: trustId),
+      );
+    case CustomerDetailScreen.routeName:
+      final args = settings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        builder: (context) => CustomerDetailScreen(
+          trustId: args['trustId'],
+          customerId: args['customerId'],
+          customerName: args['customerName'],
+        ),
+      );
+    case AddCustomerScreen.routeName:
+      final trustId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => AddCustomerScreen(trustId: trustId),
       );
     default:
       return MaterialPageRoute(

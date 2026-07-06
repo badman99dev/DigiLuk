@@ -224,6 +224,12 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
         return Icons.volunteer_activism;
       case TrustType.kitty:
         return Icons.celebration;
+      case TrustType.business:
+        return Icons.store;
+      case TrustType.tuition:
+        return Icons.school;
+      case TrustType.gym:
+        return Icons.fitness_center;
     }
   }
 
@@ -237,6 +243,12 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
         return 'NGO';
       case TrustType.kitty:
         return 'Kitty';
+      case TrustType.business:
+        return 'Business';
+      case TrustType.tuition:
+        return 'Tuition';
+      case TrustType.gym:
+        return 'Gym';
     }
   }
 }

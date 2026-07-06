@@ -10,6 +10,7 @@ import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/features/add_transaction/screens/add_transaction_screen.dart';
 import 'package:digiluk/features/transactions/screens/transactions_screen.dart';
 import 'package:digiluk/features/members/screens/members_screen.dart';
+import 'package:digiluk/features/customers/screens/customers_list_screen.dart';
 import 'package:digiluk/features/trust_settings/screens/trust_settings_screen.dart';
 import 'package:digiluk/features/audit_log/screens/audit_log_screen.dart';
 import 'package:digiluk/models/transaction_model.dart';
@@ -178,6 +179,10 @@ class TrustHomeScreen extends ConsumerWidget {
   }
 
   Widget _buildQuickActions(BuildContext context, TrustModel trust) {
+    bool isBusinessType = trust.type == TrustType.business ||
+        trust.type == TrustType.tuition ||
+        trust.type == TrustType.gym;
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -212,17 +217,30 @@ class TrustHomeScreen extends ConsumerWidget {
             },
           ),
         ),
-        _buildActionItem(
-          context,
-          Icons.people_outline,
-          'Members',
-          digilukPrimary,
-          () => Navigator.pushNamed(
+        if (isBusinessType)
+          _buildActionItem(
             context,
-            MembersScreen.routeName,
-            arguments: trust.trustId,
+            Icons.people_outline,
+            'Customers',
+            digilukAccent,
+            () => Navigator.pushNamed(
+              context,
+              CustomersListScreen.routeName,
+              arguments: trust.trustId,
+            ),
+          )
+        else
+          _buildActionItem(
+            context,
+            Icons.people_outline,
+            'Members',
+            digilukPrimary,
+            () => Navigator.pushNamed(
+              context,
+              MembersScreen.routeName,
+              arguments: trust.trustId,
+            ),
           ),
-        ),
         _buildActionItem(
           context,
           Icons.history,

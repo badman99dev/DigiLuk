@@ -167,6 +167,16 @@ class AuthRepository {
     await googleSignIn.signOut();
   }
 
+  Stream<UserModel?> userDataStream() {
+    if (auth.currentUser == null) return Stream.value(null);
+    return firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .snapshots()
+        .map((event) =>
+            event.exists ? UserModel.fromMap(event.data()!) : null);
+  }
+
   Stream<UserModel> userData(String userId) {
     return firestore.collection('users').doc(userId).snapshots().map(
           (event) => UserModel.fromMap(event.data()!),
