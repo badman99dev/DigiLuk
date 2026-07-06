@@ -34,15 +34,20 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Download gradle-wrapper.jar
+      - name: Download gradle-wrapper files
         run: |
           if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ]; then
             echo "Downloading gradle-wrapper.jar..."
             curl -sL -o android/gradle/wrapper/gradle-wrapper.jar \
               https://raw.githubusercontent.com/gradle/gradle/v8.3.0/gradle/wrapper/gradle-wrapper.jar
             echo "Downloaded gradle-wrapper.jar"
-            ls -lh android/gradle/wrapper/gradle-wrapper.jar
           fi
+          echo "Downloading proper gradlew script..."
+          curl -sL -o android/gradlew \
+            https://raw.githubusercontent.com/gradle/gradle/v8.3.0/gradlew
+          chmod +x android/gradlew
+          echo "Downloaded gradlew"
+          ls -lh android/gradle/wrapper/gradle-wrapper.jar android/gradlew
 
       - name: Create local.properties
         run: |
