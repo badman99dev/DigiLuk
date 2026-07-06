@@ -56,7 +56,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               alignment: Alignment.topRight,
               child: TextButton(
                 onPressed: _goToLogin,
-                child: const Text('Skip', color: digilukSubTextColor),
+                child: Text('Skip', style: TextStyle(color: digilukSubTextColor)),
               ),
             ),
             Expanded(

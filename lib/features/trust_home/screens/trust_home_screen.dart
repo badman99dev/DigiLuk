@@ -5,6 +5,7 @@ import 'package:digiluk/common/widgets/balance_card.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
 import 'package:digiluk/common/widgets/transaction_tile.dart';
+import 'package:digiluk/features/auth/controller/auth_controller.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/features/add_transaction/screens/add_transaction_screen.dart';
 import 'package:digiluk/features/transactions/screens/transactions_screen.dart';
