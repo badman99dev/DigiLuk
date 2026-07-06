@@ -159,7 +159,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
+                      await ref.read(authControllerProvider).signOut();
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/login',

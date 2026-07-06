@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:digiluk/common/widgets/error.dart';
 import 'package:digiluk/mobile_layout_screen.dart';
 import 'package:digiluk/features/auth/screens/login_screen.dart';
-import 'package:digiluk/features/auth/screens/otp_screen.dart';
 import 'package:digiluk/features/auth/screens/user_information_screen.dart';
 import 'package:digiluk/features/trust/screens/create_trust_screen.dart';
 import 'package:digiluk/features/trust_home/screens/trust_home_screen.dart';
@@ -11,17 +10,13 @@ import 'package:digiluk/features/members/screens/members_screen.dart';
 import 'package:digiluk/features/trust_settings/screens/trust_settings_screen.dart';
 import 'package:digiluk/features/audit_log/screens/audit_log_screen.dart';
 import 'package:digiluk/features/transactions/screens/transactions_screen.dart';
+import 'package:digiluk/models/transaction_model.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case LoginScreen.routeName:
       return MaterialPageRoute(
         builder: (context) => const LoginScreen(),
-      );
-    case OTPScreen.routeName:
-      final verificationId = settings.arguments as String;
-      return MaterialPageRoute(
-        builder: (context) => OTPScreen(verificationId: verificationId),
       );
     case UserInformationScreen.routeName:
       return MaterialPageRoute(
@@ -45,7 +40,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => AddTransactionScreen(
           trustId: args['trustId'],
-          type: args['type'],
+          type: args['type'] as TransactionType,
         ),
       );
     case MembersScreen.routeName:

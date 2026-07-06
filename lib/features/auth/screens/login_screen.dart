@@ -1,9 +1,7 @@
-import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
-import 'package:digiluk/common/widgets/custom_button.dart';
 import 'package:digiluk/features/auth/controller/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -15,34 +13,12 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final phoneController = TextEditingController();
-  Country? country;
+  bool _isLoading = false;
 
-  @override
-  void dispose() {
-    phoneController.dispose();
-    super.dispose();
-  }
-
-  void pickCountry() {
-    showCountryPicker(
-      context: context,
-      showPhoneCode: true,
-      onSelect: (Country c) {
-        setState(() => country = c);
-      },
-    );
-  }
-
-  void sendPhoneNumber() {
-    String phoneNumber = phoneController.text.trim();
-    if (country != null && phoneNumber.isNotEmpty) {
-      ref
-          .read(authControllerProvider)
-          .signInWithPhone(context, '+${country!.phoneCode}$phoneNumber');
-    } else {
-      showSnackBar(context: context, content: 'Please fill all fields');
-    }
+  void _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    await ref.read(authControllerProvider).signInWithGoogle(context);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -58,125 +34,138 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               minHeight: size.height - 48,
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 40),
-                Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [digilukPrimary, digilukPrimaryDark],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
+                const SizedBox(height: 60),
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [digilukPrimary, digilukPrimaryDark],
                     ),
-                    child: const Icon(
-                      Icons.account_balance,
-                      color: digilukWhite,
-                      size: 40,
-                    ),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: const Icon(
+                    Icons.account_balance,
+                    color: digilukWhite,
+                    size: 45,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Center(
+                const SizedBox(height: 20),
+                const Text(
+                  'DigiLuk',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: digilukTextColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Transparent Trust Management',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: digilukSubTextColor,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                const Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'DigiLuk',
+                    'Welcome!',
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
                       color: digilukTextColor,
                     ),
                   ),
                 ),
-                const Center(
+                const SizedBox(height: 8),
+                const Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'Transparent Trust Management',
+                    'Sign in to manage your trust funds with full transparency.',
                     style: TextStyle(
                       fontSize: 14,
                       color: digilukSubTextColor,
                     ),
                   ),
                 ),
-                const SizedBox(height: 48),
-                const Text(
-                  'Verify your number',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: digilukTextColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'DigiLuk will send an OTP to verify your phone number.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: digilukSubTextColor,
-                  ),
-                ),
+                const SizedBox(height: 40),
+                _buildGoogleButton(),
                 const SizedBox(height: 24),
-                GestureDetector(
-                  onTap: pickCountry,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: digilukDividerColor),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          country != null
-                              ? '${country!.flagEmoji} ${country!.name}'
-                              : 'Select Country',
-                          style: TextStyle(
-                            color: country != null
-                                ? digilukTextColor
-                                : digilukSubTextColor,
-                          ),
-                        ),
-                        const Icon(Icons.arrow_drop_down, color: digilukGrey),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Row(
                   children: [
-                    if (country != null)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Text(
-                          '+${country!.phoneCode}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                    const Expanded(
+                      child: Divider(color: digilukDividerColor),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'or',
+                        style: TextStyle(color: digilukSubTextColor),
                       ),
-                    Expanded(
-                      child: TextField(
-                        controller: phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          hintText: 'Phone number',
-                        ),
-                      ),
+                    ),
+                    const Expanded(
+                      child: Divider(color: digilukDividerColor),
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
-                CustomButton(
-                  text: 'Send OTP',
-                  onPressed: sendPhoneNumber,
+                const SizedBox(height: 24),
+                Text(
+                  'By continuing, you agree to DigiLuk\'s Terms of Service and Privacy Policy.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: digilukGrey.shade500,
+                  ),
                 ),
+                const SizedBox(height: 40),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: OutlinedButton.icon(
+        onPressed: _isLoading ? null : _signInWithGoogle,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: digilukWhite,
+          foregroundColor: digilukTextColor,
+          side: const BorderSide(color: digilukDividerColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        icon: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: digilukPrimary,
+                  strokeWidth: 2,
+                ),
+              )
+            : Image.network(
+                'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                width: 24,
+                height: 24,
+                errorBuilder: (context, error, widget) =>
+                    const Icon(Icons.login, size: 24),
+              ),
+        label: Text(
+          _isLoading ? 'Signing in...' : 'Continue with Google',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),

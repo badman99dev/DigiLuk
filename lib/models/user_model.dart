@@ -3,6 +3,7 @@ class UserModel {
   final String uid;
   final String profilePic;
   final String phoneNumber;
+  final String email;
   final List<String> trustIds;
   final String languagePreference;
   final bool biometricEnabled;
@@ -13,6 +14,7 @@ class UserModel {
     required this.uid,
     required this.profilePic,
     required this.phoneNumber,
+    this.email = '',
     required this.trustIds,
     this.languagePreference = 'en',
     this.biometricEnabled = false,
@@ -25,6 +27,7 @@ class UserModel {
       'uid': uid,
       'profilePic': profilePic,
       'phoneNumber': phoneNumber,
+      'email': email,
       'trustIds': trustIds,
       'languagePreference': languagePreference,
       'biometricEnabled': biometricEnabled,
@@ -38,6 +41,7 @@ class UserModel {
       uid: map['uid'] ?? '',
       profilePic: map['profilePic'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
+      email: map['email'] ?? '',
       trustIds: List<String>.from(map['trustIds'] ?? []),
       languagePreference: map['languagePreference'] ?? 'en',
       biometricEnabled: map['biometricEnabled'] ?? false,
@@ -59,6 +63,7 @@ class UserModel {
       uid: uid,
       profilePic: profilePic ?? this.profilePic,
       phoneNumber: phoneNumber,
+      email: email,
       trustIds: trustIds ?? this.trustIds,
       languagePreference: languagePreference ?? this.languagePreference,
       biometricEnabled: biometricEnabled ?? this.biometricEnabled,

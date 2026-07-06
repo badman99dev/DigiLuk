@@ -24,16 +24,8 @@ class AuthController {
     return user;
   }
 
-  void signInWithPhone(BuildContext context, String phoneNumber) {
-    authRepository.signInWithPhone(context, phoneNumber);
-  }
-
-  void verifyOTP(BuildContext context, String verificationId, String userOTP) {
-    authRepository.verifyOTP(
-      context: context,
-      verificationId: verificationId,
-      userOTP: userOTP,
-    );
+  void signInWithGoogle(BuildContext context) {
+    authRepository.signInWithGoogle(context);
   }
 
   void saveUserDataToFirebase(
@@ -56,6 +48,10 @@ class AuthController {
 
   Future<void> updateProfileName(String name) {
     return authRepository.updateProfileName(name);
+  }
+
+  Future<void> signOut() {
+    return authRepository.signOut();
   }
 
   Stream<UserModel> userDataById(String userId) {

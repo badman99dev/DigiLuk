@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
@@ -18,6 +19,23 @@ class UserInformationScreen extends ConsumerStatefulWidget {
 class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
   final TextEditingController nameController = TextEditingController();
   File? image;
+  String? _googlePhotoUrl;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGoogleData();
+  }
+
+  void _loadGoogleData() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      nameController.text = user.displayName ?? '';
+      _googlePhotoUrl = user.photoURL;
+      setState(() {});
+    }
+  }
 
   @override
   void dispose() {
@@ -30,14 +48,16 @@ class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
     setState(() {});
   }
 
-  void storeUserData() {
+  void storeUserData() async {
     String name = nameController.text.trim();
     if (name.isNotEmpty) {
+      setState(() => _isLoading = true);
       ref.read(authControllerProvider).saveUserDataToFirebase(
             context,
             name,
             image,
           );
+      setState(() => _isLoading = false);
     } else {
       showSnackBar(context: context, content: 'Please enter your name');
     }
@@ -57,26 +77,33 @@ class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
               const SizedBox(height: 24),
               Stack(
                 children: [
-                  image == null
+                  image != null
                       ? CircleAvatar(
                           radius: 64,
-                          backgroundColor: digilukPrimary.withOpacity(0.1),
-                          child: const Icon(
-                            Icons.person,
-                            size: 64,
-                            color: digilukPrimary,
-                          ),
-                        )
-                      : CircleAvatar(
-                          radius: 64,
                           backgroundImage: FileImage(image!),
-                        ),
+                        )
+                      : _googlePhotoUrl != null
+                          ? CircleAvatar(
+                              radius: 64,
+                              backgroundImage: NetworkImage(_googlePhotoUrl!),
+                            )
+                          : CircleAvatar(
+                              radius: 64,
+                              backgroundColor:
+                                  digilukPrimary.withOpacity(0.1),
+                              child: const Icon(
+                                Icons.person,
+                                size: 64,
+                                color: digilukPrimary,
+                              ),
+                            ),
                   Positioned(
                     bottom: -10,
                     left: 80,
                     child: IconButton(
                       onPressed: selectImage,
-                      icon: const Icon(Icons.add_a_photo, color: digilukPrimary),
+                      icon: const Icon(Icons.add_a_photo,
+                          color: digilukPrimary),
                     ),
                   ),
                 ],
@@ -93,6 +120,7 @@ class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
               CustomButton(
                 text: 'Save & Continue',
                 onPressed: storeUserData,
+                isLoading: _isLoading,
               ),
             ],
           ),
