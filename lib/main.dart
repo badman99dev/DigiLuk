@@ -106,7 +106,10 @@ class _DigiLukAppState extends ConsumerState<DigiLukApp> {
           }
           return const MobileLayoutScreen();
         },
-        error: (err, trace) => ErrorScreen(error: err.toString()),
+        error: (err, trace) {
+          debugPrint('Auth check error: $err');
+          return OnboardingScreen(onComplete: _completeOnboarding);
+        },
         loading: () => const Scaffold(body: Loader()),
       ),
     );
