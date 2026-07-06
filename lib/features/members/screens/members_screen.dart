@@ -5,6 +5,7 @@ import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/custom_button.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
+import 'package:digiluk/features/auth/controller/auth_controller.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/models/trust_model.dart';
 

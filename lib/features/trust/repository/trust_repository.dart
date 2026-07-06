@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +23,14 @@ class TrustRepository {
   CollectionReference get _trusts => firestore.collection('trusts');
   CollectionReference get _users => firestore.collection('users');
 
+  Future<Map<String, dynamic>> _getUserData(String uid) async {
+    var userDoc = await _users.doc(uid).get();
+    if (userDoc.exists) {
+      return userDoc.data() as Map<String, dynamic>;
+    }
+    return {};
+  }
+
   Future<void> createTrust({
     required BuildContext context,
     required String name,
@@ -33,13 +40,9 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
       String phone = auth.currentUser!.phoneNumber ?? '';
-
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
       String trustId = const Uuid().v1();
 
@@ -56,7 +59,7 @@ class TrustRepository {
             uid: uid,
             name: userName,
             phoneNumber: phone,
-            profilePic: userDoc.data()?['profilePic'] ?? '',
+            profilePic: userData['profilePic'] ?? '',
             role: MemberRole.creator,
             joinedAt: DateTime.now(),
           ),
@@ -65,7 +68,6 @@ class TrustRepository {
       );
 
       await _trusts.doc(trustId).set(trust.toMap());
-
       await _users.doc(uid).update({
         'trustIds': FieldValue.arrayUnion([trustId]),
       });
@@ -91,14 +93,16 @@ class TrustRepository {
     }
     return _trusts.where('trustId', whereIn: trustIds).snapshots().map(
           (event) => event.docs
-              .map((doc) => TrustModel.fromMap(doc.data() as Map<String, dynamic>))
+              .map((doc) =>
+                  TrustModel.fromMap(doc.data() as Map<String, dynamic>))
               .toList(),
         );
   }
 
   Stream<TrustModel> getTrustData(String trustId) {
     return _trusts.doc(trustId).snapshots().map(
-          (event) => TrustModel.fromMap(event.data() as Map<String, dynamic>),
+          (event) =>
+              TrustModel.fromMap(event.data() as Map<String, dynamic>),
         );
   }
 
@@ -110,8 +114,8 @@ class TrustRepository {
         .snapshots()
         .map(
           (event) => event.docs
-              .map((doc) =>
-                  TransactionModel.fromMap(doc.data() as Map<String, dynamic>))
+              .map((doc) => TransactionModel.fromMap(
+                  doc.data() as Map<String, dynamic>))
               .toList(),
         );
   }
@@ -125,8 +129,8 @@ class TrustRepository {
         .snapshots()
         .map(
           (event) => event.docs
-              .map((doc) =>
-                  AuditLogModel.fromMap(doc.data() as Map<String, dynamic>))
+              .map((doc) => AuditLogModel.fromMap(
+                  doc.data() as Map<String, dynamic>))
               .toList(),
         );
   }
@@ -143,11 +147,8 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
       var trustDoc = await _trusts.doc(trustId).get();
       TrustModel trust =
@@ -207,14 +208,14 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
-      var txnDoc =
-          await _trusts.doc(trustId).collection('transactions').doc(txnId).get();
+      var txnDoc = await _trusts
+          .doc(trustId)
+          .collection('transactions')
+          .doc(txnId)
+          .get();
       TransactionModel txn =
           TransactionModel.fromMap(txnDoc.data() as Map<String, dynamic>);
 
@@ -248,11 +249,8 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
       await _trusts.doc(trustId).collection('transactions').doc(txnId).update({
         'status': TransactionStatus.rejected.name,
@@ -283,11 +281,8 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
       var userQuery = await _users
           .where('phoneNumber', isEqualTo: phoneNumber)
@@ -302,8 +297,9 @@ class TrustRepository {
         return;
       }
 
-      var newUserData = userQuery.docs[0].data();
-      String newUid = newUserData['uid'];
+      var newUserData =
+          userQuery.docs[0].data() as Map<String, dynamic>;
+      String newUid = newUserData['uid'] ?? '';
       String newName = newUserData['name'] ?? '';
       String newPic = newUserData['profilePic'] ?? '';
 
@@ -357,11 +353,8 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
       var trustDoc = await _trusts.doc(trustId).get();
       TrustModel trust =
@@ -406,11 +399,8 @@ class TrustRepository {
   }) async {
     try {
       String uid = auth.currentUser!.uid;
-      String userName = '';
-      var userDoc = await _users.doc(uid).get();
-      if (userDoc.exists) {
-        userName = userDoc.data()?['name'] ?? '';
-      }
+      var userData = await _getUserData(uid);
+      String userName = userData['name'] ?? '';
 
       await _trusts.doc(trustId).update({'settings': settings.toMap()});
 
@@ -435,8 +425,8 @@ class TrustRepository {
   ) async {
     var trustDoc = await _trusts.doc(trustId).get();
     if (trustDoc.exists) {
-      double currentBalance =
-          (trustDoc.data() as Map<String, dynamic>)['totalBalance'] ?? 0;
+      Map<String, dynamic> data = trustDoc.data() as Map<String, dynamic>;
+      double currentBalance = (data['totalBalance'] ?? 0).toDouble();
       double newBalance = type == TransactionType.income
           ? currentBalance + amount
           : currentBalance - amount;
