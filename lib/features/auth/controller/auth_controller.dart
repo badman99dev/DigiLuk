@@ -24,8 +24,8 @@ class AuthController {
     return user;
   }
 
-  void signInWithGoogle(BuildContext context) {
-    authRepository.signInWithGoogle(context);
+  Future<void> signInWithGoogle(BuildContext context) {
+    return authRepository.signInWithGoogle(context);
   }
 
   void saveUserDataToFirebase(
