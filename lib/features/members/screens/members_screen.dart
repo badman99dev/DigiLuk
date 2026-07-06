@@ -130,7 +130,7 @@ class MembersScreen extends ConsumerWidget {
                     ],
                   ),
                   subtitle: Text(
-                    member.phoneNumber,
+                    member.email.isNotEmpty ? member.email : member.phoneNumber,
                     style: const TextStyle(
                       fontSize: 12,
                       color: digilukSubTextColor,
@@ -191,7 +191,10 @@ class MembersScreen extends ConsumerWidget {
   }
 
   void _showAddMemberDialog(BuildContext context, WidgetRef ref, String trustId) {
-    final phoneController = TextEditingController();
+    final emailController = TextEditingController();
+    bool isSearching = false;
+    Map<String, dynamic>? searchResult;
+    bool userNotFound = false;
     String selectedRole = 'member';
 
     showModalBottomSheet(
@@ -222,78 +225,246 @@ class MembersScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Phone Number'),
+                  const Text('Email Address'),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      hintText: 'e.g., +919876543210',
-                      prefixIcon: Icon(Icons.phone_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Role'),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text('Member'),
-                          value: 'member',
-                          groupValue: selectedRole,
-                          activeColor: digilukPrimary,
-                          onChanged: (val) =>
-                              setState(() => selectedRole = val!),
-                        ),
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: 'user@example.com',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: isSearching
+                            ? null
+                            : () async {
+                                String email = emailController.text.trim();
+                                if (email.isEmpty) {
+                                  showSnackBar(
+                                      context: context,
+                                      content: 'Enter email address');
+                                  return;
+                                }
+                                if (!email.contains('@') ||
+                                    !email.contains('.')) {
+                                  showSnackBar(
+                                      context: context,
+                                      content: 'Enter valid email');
+                                  return;
+                                }
+                                setState(() {
+                                  isSearching = true;
+                                  searchResult = null;
+                                  userNotFound = false;
+                                });
+                                final result = await ref
+                                    .read(trustControllerProvider)
+                                    .searchUserByEmail(email);
+                                setState(() {
+                                  isSearching = false;
+                                  if (result != null) {
+                                    searchResult = result;
+                                    userNotFound = false;
+                                  } else {
+                                    searchResult = null;
+                                    userNotFound = true;
+                                  }
+                                });
+                              },
                       ),
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text('Manager'),
-                          value: 'manager',
-                          groupValue: selectedRole,
-                          activeColor: digilukPrimary,
-                          onChanged: (val) =>
-                              setState(() => selectedRole = val!),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Note: The person must have DigiLuk installed and registered with this phone number.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: digilukSubTextColor,
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  CustomButton(
-                    text: 'Add Member',
-                    onPressed: () {
-                      String phone = phoneController.text.trim();
-                      if (phone.isEmpty) {
-                        showSnackBar(
-                            context: context, content: 'Enter phone number');
-                        return;
-                      }
-                      ref.read(trustControllerProvider).addMember(
-                            context: context,
-                            trustId: trustId,
-                            phoneNumber: phone,
-                            role: selectedRole == 'manager'
-                                ? MemberRole.manager
-                                : MemberRole.member,
-                          );
-                      Navigator.pop(context);
+                    onSubmitted: (value) async {
+                      String email = value.trim();
+                      if (email.isEmpty || !email.contains('@')) return;
+                      setState(() {
+                        isSearching = true;
+                        searchResult = null;
+                        userNotFound = false;
+                      });
+                      final result = await ref
+                          .read(trustControllerProvider)
+                          .searchUserByEmail(email);
+                      setState(() {
+                        isSearching = false;
+                        if (result != null) {
+                          searchResult = result;
+                          userNotFound = false;
+                        } else {
+                          searchResult = null;
+                          userNotFound = true;
+                        }
+                      });
                     },
                   ),
+                  const SizedBox(height: 16),
+
+                  if (isSearching)
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: Loader()),
+                    ),
+
+                  if (searchResult != null) ...[
+                    _buildUserCard(searchResult!),
+                    const SizedBox(height: 16),
+                    const Text('Select Role'),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Member'),
+                            value: 'member',
+                            groupValue: selectedRole,
+                            activeColor: digilukPrimary,
+                            onChanged: (val) =>
+                                setState(() => selectedRole = val!),
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Manager'),
+                            value: 'manager',
+                            groupValue: selectedRole,
+                            activeColor: digilukPrimary,
+                            onChanged: (val) =>
+                                setState(() => selectedRole = val!),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    CustomButton(
+                      text: 'Confirm & Add',
+                      onPressed: () {
+                        ref.read(trustControllerProvider).addMemberByEmail(
+                              context: context,
+                              trustId: trustId,
+                              email: emailController.text.trim(),
+                              role: selectedRole == 'manager'
+                                  ? MemberRole.manager
+                                  : MemberRole.member,
+                            );
+                      },
+                    ),
+                  ],
+
+                  if (userNotFound)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: digilukExpense.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: digilukExpense.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_search_outlined,
+                              color: digilukExpense, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'No user found',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'No DigiLuk user with this email. Ask them to install DigiLuk and sign in first.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: digilukSubTextColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  if (!isSearching &&
+                      searchResult == null &&
+                      !userNotFound)
+                    const Text(
+                      'Enter the email address of the person you want to add. They must have DigiLuk installed.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: digilukSubTextColor,
+                      ),
+                    ),
                 ],
               ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildUserCard(Map<String, dynamic> userData) {
+    String name = userData['name'] ?? 'Unknown';
+    String email = userData['email'] ?? '';
+    String profilePic = userData['profilePic'] ?? '';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: digilukPrimary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: digilukPrimary.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: digilukPrimary.withOpacity(0.1),
+            backgroundImage:
+                profilePic.isNotEmpty ? NetworkImage(profilePic) : null,
+            child: profilePic.isEmpty
+                ? Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      color: digilukPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: digilukTextColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: digilukSubTextColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.check_circle, color: digilukIncome, size: 28),
+        ],
+      ),
     );
   }
 }

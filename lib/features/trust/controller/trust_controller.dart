@@ -92,16 +92,20 @@ class TrustController {
     );
   }
 
-  void addMember({
+  Future<Map<String, dynamic>?> searchUserByEmail(String email) {
+    return trustRepository.searchUserByEmail(email);
+  }
+
+  void addMemberByEmail({
     required BuildContext context,
     required String trustId,
-    required String phoneNumber,
+    required String email,
     required MemberRole role,
   }) {
-    trustRepository.addMember(
+    trustRepository.addMemberByEmail(
       context: context,
       trustId: trustId,
-      phoneNumber: phoneNumber,
+      email: email,
       role: role,
     );
   }

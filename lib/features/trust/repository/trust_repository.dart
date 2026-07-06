@@ -273,10 +273,21 @@ class TrustRepository {
     }
   }
 
-  Future<void> addMember({
+  Future<Map<String, dynamic>?> searchUserByEmail(String email) async {
+    try {
+      var query = await _users.where('email', isEqualTo: email).limit(1).get();
+      if (query.docs.isEmpty) return null;
+      return query.docs[0].data() as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('Search user error: $e');
+      return null;
+    }
+  }
+
+  Future<void> addMemberByEmail({
     required BuildContext context,
     required String trustId,
-    required String phoneNumber,
+    required String email,
     required MemberRole role,
   }) async {
     try {
@@ -285,7 +296,7 @@ class TrustRepository {
       String userName = userData['name'] ?? '';
 
       var userQuery = await _users
-          .where('phoneNumber', isEqualTo: phoneNumber)
+          .where('email', isEqualTo: email)
           .limit(1)
           .get();
 
@@ -302,6 +313,8 @@ class TrustRepository {
       String newUid = newUserData['uid'] ?? '';
       String newName = newUserData['name'] ?? '';
       String newPic = newUserData['profilePic'] ?? '';
+      String newEmail = newUserData['email'] ?? '';
+      String newPhone = newUserData['phoneNumber'] ?? '';
 
       var trustDoc = await _trusts.doc(trustId).get();
       TrustModel trust =
@@ -315,7 +328,8 @@ class TrustRepository {
       TrustMember newMember = TrustMember(
         uid: newUid,
         name: newName,
-        phoneNumber: phoneNumber,
+        email: newEmail,
+        phoneNumber: newPhone,
         profilePic: newPic,
         role: role,
         joinedAt: DateTime.now(),

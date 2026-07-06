@@ -90,6 +90,7 @@ class TrustModel {
 class TrustMember {
   final String uid;
   final String name;
+  final String email;
   final String phoneNumber;
   final String profilePic;
   final MemberRole role;
@@ -98,7 +99,8 @@ class TrustMember {
   TrustMember({
     required this.uid,
     required this.name,
-    required this.phoneNumber,
+    this.email = '',
+    this.phoneNumber = '',
     required this.profilePic,
     required this.role,
     required this.joinedAt,
@@ -108,6 +110,7 @@ class TrustMember {
     return {
       'uid': uid,
       'name': name,
+      'email': email,
       'phoneNumber': phoneNumber,
       'profilePic': profilePic,
       'role': role.name,
@@ -119,6 +122,7 @@ class TrustMember {
     return TrustMember(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
+      email: map['email'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       profilePic: map['profilePic'] ?? '',
       role: MemberRole.values.firstWhere(
