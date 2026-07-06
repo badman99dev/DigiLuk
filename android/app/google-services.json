@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "digiluk-app",
-    "storage_bucket": "digiluk-app.appspot.com"
+    "project_number": "141599289824",
+    "project_id": "digiluk",
+    "storage_bucket": "digiluk.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:141599289824:android:a11e737fba99580c023b85",
         "android_client_info": {
           "package_name": "com.digiluk.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "141599289824-aa17vg16jsbsl6gj3rfd7mdbe5eqd6ig.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digiluk.app",
+            "certificate_hash": "8fb5bed29d07540be3e56d101b95728c4655f16f"
+          }
+        },
+        {
+          "client_id": "141599289824-sahd1pipikt0bld7qh0snp47s2enk35o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyPlaceholderKeyForBuildOnly000000000"
+          "current_key": "AIzaSyAE6IAnvRID8hfZIoIzvoZIJ396fApEU40"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "141599289824-5r2jmujhfgvost17gmvmjs7cds1tt6bg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -62,8 +62,8 @@ jobs:
       - name: Grant gradlew permission
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK (arm64 only for smaller size)
-        run: flutter build apk --debug --target-platform android-arm64 --no-tree-shake-icons
+      - name: Build Release APK (arm64 only, signed)
+        run: flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons
 
       - name: Upload APK to TempServ
         env:
@@ -109,3 +109,4 @@ jobs:
           name: digiluk-apk
           path: build/app/outputs/flutter-apk/*.apk
           retention-days: 30
+

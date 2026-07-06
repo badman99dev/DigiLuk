@@ -22,19 +22,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyPlaceholderKeyForBuildOnly000000000',
-    appId: '1:000000000000:android:0000000000000000000000',
-    messagingSenderId: '000000000000',
-    projectId: 'digiluk-app',
-    storageBucket: 'digiluk-app.appspot.com',
+    apiKey: 'AIzaSyAE6IAnvRID8hfZIoIzvoZIJ396fApEU40',
+    appId: '1:141599289824:android:a11e737fba99580c023b85',
+    messagingSenderId: '141599289824',
+    projectId: 'digiluk',
+    storageBucket: 'digiluk.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyPlaceholderKeyForBuildOnly000000000',
-    appId: '1:000000000000:ios:0000000000000000000000',
-    messagingSenderId: '000000000000',
-    projectId: 'digiluk-app',
-    storageBucket: 'digiluk-app.appspot.com',
+    apiKey: 'AIzaSyAE6IAnvRID8hfZIoIzvoZIJ396fApEU40',
+    appId: '1:141599289824:ios:0000000000000000000000',
+    messagingSenderId: '141599289824',
+    projectId: 'digiluk',
+    storageBucket: 'digiluk.firebasestorage.app',
     iosBundleId: 'com.digiluk.app',
   );
 }
