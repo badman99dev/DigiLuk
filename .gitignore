@@ -1,0 +1,20 @@
+# Build outputs
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+ios/Pods/
+android/.gradle/
+android/local.properties
+android/key.properties
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+.DS_Store
+# google-services.json - needed for build, commit placeholder
+# GoogleService-Info.plist

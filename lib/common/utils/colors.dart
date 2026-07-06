@@ -1,0 +1,23 @@
+import 'package:flutter/material.dart';
+
+const digilukPrimary = Color(0xFF1A73E8);
+const digilukPrimaryDark = Color(0xFF0D47A1);
+const digilukAccent = Color(0xFF00C853);
+const digilukIncome = Color(0xFF00C853);
+const digilukExpense = Color(0xFFFF3D00);
+const digilukPending = Color(0xFFFFAB00);
+const digilukApproved = Color(0xFF00C853);
+const digilukRejected = Color(0xFFFF3D00);
+const digilukBackgroundColor = Color(0xFFF5F7FA);
+const digilukCardColor = Color(0xFFFFFFFF);
+const digilukTextColor = Color(0xFF1A1A2E);
+const digilukSubTextColor = Color(0xFF6B7280);
+const digilukDividerColor = Color(0xFFE5E7EB);
+const digilukAppBarColor = Color(0xFF1A73E8);
+const digilukBottomNavColor = Color(0xFFFFFFFF);
+const digilukGrey = Colors.grey;
+const digilukBlack = Colors.black;
+const digilukWhite = Colors.white;
+const digilukRoleCreator = Color(0xFF6C5CE7);
+const digilukRoleManager = Color(0xFF1A73E8);
+const digilukRoleMember = Color(0xFF6B7280);
