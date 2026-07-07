@@ -28,7 +28,7 @@ class _TrustSettingsScreenState extends ConsumerState<TrustSettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trust Settings'),
+        title: const Text('Group Settings'),
       ),
       body: StreamBuilder<TrustModel>(
         stream: trustController.getTrustData(widget.trustId),
@@ -37,7 +37,7 @@ class _TrustSettingsScreenState extends ConsumerState<TrustSettingsScreen> {
             return const Loader();
           }
           if (!snapshot.hasData) {
-            return const Center(child: Text('Trust not found'));
+            return const Center(child: Text('Group not found'));
           }
           final trust = snapshot.data!;
           final settings = trust.settings;
@@ -80,7 +80,7 @@ class _TrustSettingsScreenState extends ConsumerState<TrustSettingsScreen> {
                 const Divider(height: 32),
                 _buildSectionTitle('Auto-Delete Timer'),
                 const Text(
-                  'Automatically delete trust data after a specified period.',
+                  'Automatically delete group data after a specified period.',
                   style: TextStyle(
                     fontSize: 12,
                     color: digilukSubTextColor,
@@ -103,8 +103,8 @@ class _TrustSettingsScreenState extends ConsumerState<TrustSettingsScreen> {
                   onChanged: (val) => setState(() => _autoDeleteDays = val),
                 ),
                 const Divider(height: 32),
-                _buildSectionTitle('Trust Info'),
-                _buildInfoRow('Trust Name', trust.name),
+                _buildSectionTitle('Group Info'),
+                _buildInfoRow('Group Name', trust.name),
                 _buildInfoRow('Type', trust.type.name),
                 _buildInfoRow('Members', '${trust.members.length}'),
                 _buildInfoRow('Created By', trust.createdBy),

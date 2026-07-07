@@ -37,7 +37,7 @@ class MembersScreen extends ConsumerWidget {
           if (!snapshot.hasData) {
             return const EmptyState(
               title: 'No Data',
-              subtitle: 'Trust not found',
+              subtitle: 'Group not found',
               icon: Icons.error_outline,
             );
           }

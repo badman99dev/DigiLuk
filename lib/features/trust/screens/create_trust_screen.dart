@@ -35,7 +35,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
     String desc = descController.text.trim();
 
     if (name.isEmpty) {
-      showSnackBar(context: context, content: 'Please enter trust name');
+      showSnackBar(context: context, content: 'Please enter group name');
       return;
     }
 
@@ -60,7 +60,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Trust'),
+        title: const Text('Create Group'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -68,7 +68,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Trust Name',
+              'Group Name',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -79,7 +79,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                hintText: 'e.g., Sharma Family Trust',
+                hintText: 'e.g., Sharma Family Group',
                 prefixIcon: Icon(Icons.account_balance_outlined),
               ),
             ),
@@ -97,12 +97,12 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
               controller: descController,
               maxLines: 3,
               decoration: const InputDecoration(
-                hintText: 'What is this trust for?',
+                hintText: 'What is this group for?',
               ),
             ),
             const SizedBox(height: 20),
             const Text(
-              'Trust Type',
+              'Group Type',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -204,7 +204,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
             ),
             const SizedBox(height: 32),
             CustomButton(
-              text: 'Create Trust',
+              text: 'Create Group',
               onPressed: _createTrust,
               isLoading: _isLoading,
             ),

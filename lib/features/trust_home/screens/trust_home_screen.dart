@@ -28,7 +28,7 @@ class TrustHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trust Details'),
+        title: const Text('Group Details'),
         actions: [
           PopupMenuButton(
             itemBuilder: (context) => [
@@ -79,8 +79,8 @@ class TrustHomeScreen extends ConsumerWidget {
           }
           if (!trustSnapshot.hasData) {
             return const EmptyState(
-              title: 'Trust Not Found',
-              subtitle: 'This trust may have been deleted.',
+              title: 'Group Not Found',
+              subtitle: 'This group may have been deleted.',
               icon: Icons.error_outline,
             );
           }

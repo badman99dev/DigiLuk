@@ -77,10 +77,10 @@ class TrustRepository {
         action: AuditAction.trustCreated,
         performedBy: uid,
         performedByName: userName,
-        details: 'Trust "$name" created',
+        details: 'Group "$name" created',
       );
 
-      showSnackBar(context: context, content: 'Trust created successfully');
+      showSnackBar(context: context, content: 'Group created successfully');
       Navigator.pop(context);
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
@@ -423,7 +423,7 @@ class TrustRepository {
         action: AuditAction.settingsUpdated,
         performedBy: uid,
         performedByName: userName,
-        details: 'Trust settings updated',
+        details: 'Group settings updated',
       );
 
       showSnackBar(context: context, content: 'Settings updated');

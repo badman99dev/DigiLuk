@@ -271,10 +271,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Transparent Trust & Committee Fund Management'),
+            Text('Transparent Group & Committee Fund Management'),
             SizedBox(height: 8),
             Text(
-              'DigiLuk helps trusts, committees, and community groups manage funds with full transparency. Track every paisa, every transaction, every member.',
+              'DigiLuk helps groups, committees, and community funds manage money with full transparency. Track every paisa, every transaction, every member.',
               style: TextStyle(fontSize: 13),
             ),
             SizedBox(height: 8),

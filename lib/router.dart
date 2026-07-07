@@ -13,6 +13,15 @@ import 'package:digiluk/features/transactions/screens/transactions_screen.dart';
 import 'package:digiluk/features/customers/screens/customers_list_screen.dart';
 import 'package:digiluk/features/customers/screens/customer_detail_screen.dart';
 import 'package:digiluk/features/customers/screens/add_customer_screen.dart';
+import 'package:digiluk/features/dashboard/screens/groups_list_screen.dart';
+import 'package:digiluk/features/parties/screens/add_party_screen.dart';
+import 'package:digiluk/features/parties/screens/party_detail_screen.dart';
+import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
+import 'package:digiluk/features/upi/screens/upi_screen.dart';
+import 'package:digiluk/features/billing/screens/create_invoice_screen.dart';
+import 'package:digiluk/features/stock/screens/stock_screen.dart';
+import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
+import 'package:digiluk/models/party_model.dart';
 import 'package:digiluk/models/transaction_model.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
@@ -84,6 +93,53 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       final trustId = settings.arguments as String;
       return MaterialPageRoute(
         builder: (context) => AddCustomerScreen(trustId: trustId),
+      );
+    case GroupsListScreen.routeName:
+      return MaterialPageRoute(
+        builder: (context) => const GroupsListScreen(),
+      );
+    case AddPartyScreen.routeName:
+      final type = settings.arguments as PartyType?;
+      return MaterialPageRoute(
+        builder: (context) => AddPartyScreen(initialType: type ?? PartyType.customer),
+      );
+    case PartyDetailScreen.routeName:
+      final args = settings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        builder: (context) => PartyDetailScreen(
+          partyId: args['partyId'] as String,
+          partyName: args['partyName'] as String,
+        ),
+      );
+    case ShareBalanceScreen.routeName:
+      final partyId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => ShareBalanceScreen(partyId: partyId),
+      );
+    case UPIScreen.routeName:
+      final args = settings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        builder: (context) => UPIScreen(partyId: args['partyId'] as String),
+      );
+    case CreateInvoiceScreen.routeName:
+      final args = settings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        builder: (context) => CreateInvoiceScreen(
+          partyId: args['partyId'] as String,
+          partyName: args['partyName'] as String,
+        ),
+      );
+    case StockScreen.routeName:
+      return MaterialPageRoute(
+        builder: (context) => const StockScreen(),
+      );
+    case InvoiceListScreen.routeName:
+      return MaterialPageRoute(
+        builder: (context) => const InvoiceListScreen(),
+      );
+    case BulkRemindersScreen.routeName:
+      return MaterialPageRoute(
+        builder: (context) => const BulkRemindersScreen(),
       );
     default:
       return MaterialPageRoute(

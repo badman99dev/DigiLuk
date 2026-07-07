@@ -64,7 +64,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Transparent Trust Management',
+                  'Digital Khata & Group Fund Manager',
                   style: TextStyle(
                     fontSize: 15,
                     color: digilukSubTextColor,
