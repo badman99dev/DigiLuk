@@ -76,17 +76,22 @@ jobs:
           echo "Found APK at: $APK_PATH"
           ls -lh "$APK_PATH"
           
+          APK_NAME=$(basename "$APK_PATH")
           if [ -z "$TEMPSERV_TOKEN" ]; then
             echo "TEMPSERV_TOKEN not set, uploading without auth..."
             RESPONSE=$(curl -s -X POST \
-              -F "file=@${APK_PATH}" \
+              -F "mode=file" \
               -F "expiry=24hr" \
+              -F "paths=[\"$APK_NAME\"]" \
+              -F "files=@${APK_PATH}" \
               https://tempserv.cmdnode.xyz/api/upload)
           else
             RESPONSE=$(curl -s -X POST \
               -H "Authorization: Bearer ${TEMPSERV_TOKEN}" \
-              -F "file=@${APK_PATH}" \
+              -F "mode=file" \
               -F "expiry=24hr" \
+              -F "paths=[\"$APK_NAME\"]" \
+              -F "files=@${APK_PATH}" \
               https://tempserv.cmdnode.xyz/api/upload)
           fi
           
