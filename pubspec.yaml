@@ -13,7 +13,6 @@ dependencies:
   firebase_core: ^2.27.0
   firebase_auth: ^4.17.8
   cloud_firestore: ^4.15.8
-  firebase_storage: ^11.6.9
   google_sign_in: ^6.2.1
   flutter_riverpod: ^2.5.1
   image_picker: ^1.0.7
@@ -30,6 +29,7 @@ dependencies:
   local_auth: ^2.2.0
   pdf: ^3.10.8
   qr_flutter: ^4.1.0
+  http: ^1.2.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 

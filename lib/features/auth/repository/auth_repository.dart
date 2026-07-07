@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:digiluk/common/repositories/common_firebase_storage_repository.dart';
+import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/models/user_model.dart';
 import 'package:digiluk/features/auth/screens/user_information_screen.dart';
@@ -113,8 +113,8 @@ class AuthRepository {
 
       if (profilePic != null) {
         photoUrl = await ref
-            .read(commonFirebaseStorageRepositoryProvider)
-            .storeFileToFirebase('profilePic/$uid', profilePic);
+            .read(cloudinaryRepositoryProvider)
+            .uploadImage(profilePic, folder: 'digiluk/profilePic');
       }
 
       var user = UserModel(

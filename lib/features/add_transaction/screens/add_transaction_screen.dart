@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/custom_button.dart';
-import 'package:digiluk/common/repositories/common_firebase_storage_repository.dart';
+import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/models/transaction_model.dart';
 
@@ -79,10 +79,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     List<String> proofUrls = [];
     if (_proofImage != null) {
       try {
-        String uid = DateTime.now().millisecondsSinceEpoch.toString();
         String url = await ref
-            .read(commonFirebaseStorageRepositoryProvider)
-            .storeFileToFirebase('proofs/${widget.trustId}/$uid', _proofImage!);
+            .read(cloudinaryRepositoryProvider)
+            .uploadImage(_proofImage!, folder: 'digiluk/groups/${widget.trustId}');
         proofUrls.add(url);
       } catch (e) {
         showSnackBar(context: context, content: 'Failed to upload proof: $e');

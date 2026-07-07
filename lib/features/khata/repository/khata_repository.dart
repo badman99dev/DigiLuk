@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -15,18 +15,18 @@ final khataRepositoryProvider = Provider(
   (ref) => KhataRepository(
     firestore: FirebaseFirestore.instance,
     auth: FirebaseAuth.instance,
-    storage: FirebaseStorage.instance,
+    cloudinary: ref.read(cloudinaryRepositoryProvider),
   ),
 );
 
 class KhataRepository {
   final FirebaseFirestore firestore;
   final FirebaseAuth auth;
-  final FirebaseStorage storage;
+  final CloudinaryRepository cloudinary;
   KhataRepository({
     required this.firestore,
     required this.auth,
-    required this.storage,
+    required this.cloudinary,
   });
 
   String? get _uid => auth.currentUser?.uid;
@@ -52,10 +52,10 @@ class KhataRepository {
       String partyId = const Uuid().v1();
       String photoUrl = '';
       if (photo != null) {
-        final ref =
-            storage.ref().child('parties/$uid/$partyId.jpg');
-        await ref.putFile(photo);
-        photoUrl = await ref.getDownloadURL();
+        photoUrl = await cloudinary.uploadImage(
+          photo,
+          folder: 'digiluk/parties/$uid',
+        );
       }
       PartyModel party = PartyModel(
         partyId: partyId,
@@ -171,10 +171,10 @@ class KhataRepository {
       if (uid == null) return;
       String billUrl = '';
       if (billPhoto != null) {
-        final ref =
-            storage.ref().child('bills/$uid/$partyId/${Uuid().v1()}.jpg');
-        await ref.putFile(billPhoto);
-        billUrl = await ref.getDownloadURL();
+        billUrl = await cloudinary.uploadImage(
+          billPhoto,
+          folder: 'digiluk/bills/$uid/$partyId',
+        );
       }
       await _addEntryInternal(
         uid: uid,
