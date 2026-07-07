@@ -4,6 +4,7 @@ import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/widgets/balance_card.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
+import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/common/widgets/transaction_tile.dart';
 import 'package:digiluk/features/auth/controller/auth_controller.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
@@ -348,20 +349,16 @@ class TrustHomeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(right: 12),
                   child: Column(
                     children: [
-                      CircleAvatar(
+                      CloudinaryCircleAvatar(
+                        imageUrl: member.profilePic,
                         radius: 18,
                         backgroundColor: roleColor.withOpacity(0.1),
-                        backgroundImage: member.profilePic.isNotEmpty
-                            ? NetworkImage(member.profilePic)
-                            : null,
-                        child: member.profilePic.isEmpty
-                            ? Text(
-                                member.name.isNotEmpty
-                                    ? member.name[0].toUpperCase()
-                                    : '?',
-                                style: TextStyle(color: roleColor),
-                              )
-                            : null,
+                        fallback: Text(
+                          member.name.isNotEmpty
+                              ? member.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(color: roleColor),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(

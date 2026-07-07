@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/custom_button.dart';
+import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
 import 'package:digiluk/features/auth/controller/auth_controller.dart';
@@ -77,24 +78,20 @@ class MembersScreen extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(12),
-                  leading: CircleAvatar(
+                  leading: CloudinaryCircleAvatar(
+                    imageUrl: member.profilePic,
                     radius: 24,
                     backgroundColor: roleColor.withOpacity(0.1),
-                    backgroundImage: member.profilePic.isNotEmpty
-                        ? NetworkImage(member.profilePic)
-                        : null,
-                    child: member.profilePic.isEmpty
-                        ? Text(
-                            member.name.isNotEmpty
-                                ? member.name[0].toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                              color: roleColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          )
-                        : null,
+                    fallback: Text(
+                      member.name.isNotEmpty
+                          ? member.name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: roleColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
                   title: Row(
                     children: [
@@ -422,21 +419,18 @@ class MembersScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          CloudinaryCircleAvatar(
+            imageUrl: profilePic,
             radius: 28,
             backgroundColor: digilukPrimary.withOpacity(0.1),
-            backgroundImage:
-                profilePic.isNotEmpty ? NetworkImage(profilePic) : null,
-            child: profilePic.isEmpty
-                ? Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: digilukPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                    ),
-                  )
-                : null,
+            fallback: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
+              style: const TextStyle(
+                color: digilukPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(

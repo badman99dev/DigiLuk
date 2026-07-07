@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/custom_button.dart';
+import 'package:digiluk/common/widgets/image_upload_preview.dart';
 import 'package:digiluk/features/auth/controller/auth_controller.dart';
 
 class UserInformationScreen extends ConsumerStatefulWidget {
@@ -18,8 +20,11 @@ class UserInformationScreen extends ConsumerStatefulWidget {
 
 class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
   final TextEditingController nameController = TextEditingController();
-  File? image;
+  File? _imageFile;
+  String? _uploadedPhotoUrl;
   String? _googlePhotoUrl;
+  ImageUploadState _uploadState = ImageUploadState.initial;
+  int _uploadPercent = 0;
   bool _isLoading = false;
 
   @override
@@ -43,19 +48,58 @@ class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
     super.dispose();
   }
 
-  void selectImage() async {
-    image = await pickImageFromGallery(context);
-    setState(() {});
+  Future<void> selectImage() async {
+    final img = await pickImageFromGallery(context);
+    if (img == null) return;
+    _startUpload(img);
+  }
+
+  Future<void> _startUpload(File img) async {
+    setState(() {
+      _imageFile = img;
+      _uploadedPhotoUrl = null;
+      _uploadState = ImageUploadState.uploading;
+      _uploadPercent = 0;
+    });
+    try {
+      final url = await ref.read(cloudinaryRepositoryProvider).uploadImage(
+        img,
+        folder: 'digiluk/profilePic',
+        onProgress: (percent) => setState(() => _uploadPercent = percent),
+      );
+      setState(() {
+        _uploadedPhotoUrl = url;
+        _uploadState = ImageUploadState.uploaded;
+      });
+    } catch (e) {
+      setState(() => _uploadState = ImageUploadState.error);
+      showSnackBar(context: context, content: 'Upload failed: $e');
+    }
+  }
+
+  void _retryUpload() {
+    if (_imageFile != null) _startUpload(_imageFile!);
+  }
+
+  void _removeImage() {
+    setState(() {
+      _imageFile = null;
+      _uploadedPhotoUrl = null;
+      _uploadState = ImageUploadState.initial;
+      _uploadPercent = 0;
+    });
   }
 
   void storeUserData() async {
+    if (_uploadState.isBlocking) return;
     String name = nameController.text.trim();
     if (name.isNotEmpty) {
       setState(() => _isLoading = true);
+      final photoUrl = _uploadedPhotoUrl ?? _googlePhotoUrl;
       ref.read(authControllerProvider).saveUserDataToFirebase(
             context,
             name,
-            image,
+            photoUrl,
           );
       setState(() => _isLoading = false);
     } else {
@@ -75,38 +119,16 @@ class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
           child: Column(
             children: [
               const SizedBox(height: 24),
-              Stack(
-                children: [
-                  image != null
-                      ? CircleAvatar(
-                          radius: 64,
-                          backgroundImage: FileImage(image!),
-                        )
-                      : _googlePhotoUrl != null
-                          ? CircleAvatar(
-                              radius: 64,
-                              backgroundImage: NetworkImage(_googlePhotoUrl!),
-                            )
-                          : CircleAvatar(
-                              radius: 64,
-                              backgroundColor:
-                                  digilukPrimary.withOpacity(0.1),
-                              child: const Icon(
-                                Icons.person,
-                                size: 64,
-                                color: digilukPrimary,
-                              ),
-                            ),
-                  Positioned(
-                    bottom: -10,
-                    left: 80,
-                    child: IconButton(
-                      onPressed: selectImage,
-                      icon: const Icon(Icons.add_a_photo,
-                          color: digilukPrimary),
-                    ),
-                  ),
-                ],
+              ImageUploadPreview(
+                file: _imageFile,
+                uploadedUrl: _uploadedPhotoUrl,
+                state: _uploadState,
+                uploadPercent: _uploadPercent,
+                onSelect: selectImage,
+                onRetry: _retryUpload,
+                onRemove: _removeImage,
+                shape: BoxShape.circle,
+                circleRadius: 64,
               ),
               const SizedBox(height: 32),
               TextField(
@@ -119,7 +141,7 @@ class _UserInformationScreenState extends ConsumerState<UserInformationScreen> {
               const SizedBox(height: 32),
               CustomButton(
                 text: 'Save & Continue',
-                onPressed: storeUserData,
+                onPressed: _uploadState.isBlocking ? null : storeUserData,
                 isLoading: _isLoading,
               ),
             ],

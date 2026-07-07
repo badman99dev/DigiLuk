@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
+import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
 import 'package:digiluk/features/auth/controller/auth_controller.dart';
@@ -401,16 +402,13 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
       child: ListTile(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        leading: CircleAvatar(
+        leading: CloudinaryCircleAvatar(
+          imageUrl: p.photoUrl,
+          radius: 20,
           backgroundColor: digilukPrimary.withOpacity(0.12),
-          child: p.photoUrl.isNotEmpty
-              ? ClipOval(
-                  child: Image.network(p.photoUrl,
-                      fit: BoxFit.cover, width: 40, height: 40),
-                )
-              : Text(initial,
-                  style: const TextStyle(
-                      color: digilukPrimary, fontWeight: FontWeight.bold)),
+          fallback: Text(initial,
+              style: const TextStyle(
+                  color: digilukPrimary, fontWeight: FontWeight.bold)),
         ),
         title: Text(p.name,
             style: const TextStyle(fontWeight: FontWeight.w600)),

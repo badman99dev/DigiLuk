@@ -1,12 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
+import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
 import 'package:digiluk/features/khata/controller/khata_controller.dart';
+import 'package:digiluk/features/parties/widgets/add_entry_sheet.dart';
 import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
 import 'package:digiluk/features/upi/screens/upi_screen.dart';
 import 'package:digiluk/features/billing/screens/create_invoice_screen.dart';
@@ -30,156 +30,17 @@ class PartyDetailScreen extends ConsumerStatefulWidget {
 
 class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
   void _showAddEntrySheet(KhataEntryType defaultType, PartyModel party) {
-    final amountCtrl = TextEditingController();
-    final noteCtrl = TextEditingController();
-    File? billPhoto;
-    KhataEntryType selected = defaultType;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 24,
-                bottom:
-                    MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ChoiceChip(
-                          label: const Text('Gave \u{20B9}'),
-                          selected: selected == KhataEntryType.give,
-                          selectedColor: digilukExpense,
-                          labelStyle: TextStyle(
-                              color: selected == KhataEntryType.give
-                                  ? digilukWhite
-                                  : digilukTextColor),
-                          onSelected: (v) {
-                            if (v) setSheetState(() => selected = KhataEntryType.give);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ChoiceChip(
-                          label: const Text('Got \u{20B9}'),
-                          selected: selected == KhataEntryType.receive,
-                          selectedColor: digilukIncome,
-                          labelStyle: TextStyle(
-                              color: selected == KhataEntryType.receive
-                                  ? digilukWhite
-                                  : digilukTextColor),
-                          onSelected: (v) {
-                            if (v) setSheetState(() => selected = KhataEntryType.receive);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: amountCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
-                    style: const TextStyle(
-                        fontSize: 28, fontWeight: FontWeight.bold),
-                    decoration: InputDecoration(
-                      prefixText: '\u{20B9} ',
-                      hintText: '0',
-                      prefixStyle: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: digilukPrimary),
-                    ),
-                    autofocus: true,
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: noteCtrl,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      hintText: 'Note (optional)',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.attach_file, size: 18),
-                        label: const Text('Attach Bill'),
-                        onPressed: () async {
-                          final img =
-                              await pickImageFromGallery(context);
-                          if (img != null) {
-                            setSheetState(() => billPhoto = img);
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      if (billPhoto != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(billPhoto!,
-                              width: 48, height: 48, fit: BoxFit.cover),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        double? amt = double.tryParse(
-                            amountCtrl.text.trim());
-                        if (amt == null || amt <= 0) {
-                          showSnackBar(
-                              context: context,
-                              content: 'Enter valid amount');
-                          return;
-                        }
-                        ref.read(khataControllerProvider).addEntry(
-                              context: context,
-                              partyId: widget.partyId,
-                              type: selected,
-                              amount: amt,
-                              note: noteCtrl.text.trim(),
-                              billPhoto: billPhoto,
-                            );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: selected == KhataEntryType.give
-                            ? digilukExpense
-                            : digilukIncome,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: Text(
-                        selected == KhataEntryType.give
-                            ? 'Save Gave'
-                            : 'Save Got',
-                        style: const TextStyle(
-                            color: digilukWhite, fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      builder: (context) => AddEntrySheet(
+        party: party,
+        partyId: widget.partyId,
+        defaultType: defaultType,
+      ),
     );
   }
 
@@ -263,25 +124,19 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (party.photoUrl.isNotEmpty)
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: Colors.white24,
-                            backgroundImage:
-                                CachedNetworkImageProvider(party.photoUrl),
-                          )
-                        else
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: Colors.white24,
-                            child: Text(
-                                party.name.isNotEmpty
-                                    ? party.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                    color: digilukWhite,
-                                    fontWeight: FontWeight.bold)),
-                          ),
+                        CloudinaryCircleAvatar(
+                          imageUrl: party.photoUrl,
+                          radius: 22,
+                          backgroundColor: Colors.white24,
+                          tapForFullScreen: true,
+                          fallback: Text(
+                              party.name.isNotEmpty
+                                  ? party.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                  color: digilukWhite,
+                                  fontWeight: FontWeight.bold)),
+                        ),
                         const SizedBox(width: 10),
                         Text(party.name,
                             style: const TextStyle(
@@ -391,17 +246,21 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                                 if (e.billUrl.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 4),
-                                    child: GestureDetector(
-                                      onTap: () => _showBillPreview(context, e.billUrl),
-                                      child: Row(children: [
-                                        const Icon(Icons.image, size: 14, color: digilukPrimary),
-                                        const SizedBox(width: 4),
-                                        Text('View bill',
-                                            style: TextStyle(
-                                                fontSize: 11,
-                                                color: digilukPrimary)),
-                                      ]),
-                                    ),
+                                    child: Row(children: [
+                                      const Icon(Icons.image, size: 14, color: digilukPrimary),
+                                      const SizedBox(width: 4),
+                                      SizedBox(
+                                        width: 48,
+                                        height: 48,
+                                        child: CloudinaryImage(
+                                          imageUrl: e.billUrl,
+                                          width: 48,
+                                          height: 48,
+                                          borderRadius: BorderRadius.circular(8),
+                                          tapForFullScreen: true,
+                                        ),
+                                      ),
+                                    ]),
                                   ),
                               ],
                             ),
@@ -466,22 +325,6 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
             child: const Icon(Icons.remove, color: digilukWhite),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showBillPreview(BuildContext context, String url) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('Bill')),
-          body: Center(
-            child: InteractiveViewer(
-              child: CachedNetworkImage(imageUrl: url),
-            ),
-          ),
-        ),
       ),
     );
   }

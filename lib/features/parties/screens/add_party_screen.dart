@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
+import 'package:digiluk/common/widgets/image_upload_preview.dart';
 import 'package:digiluk/features/khata/controller/khata_controller.dart';
 import 'package:digiluk/models/party_model.dart';
 
@@ -20,7 +22,10 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _balanceCtrl = TextEditingController();
-  File? _photo;
+  File? _photoFile;
+  String? _photoUrl;
+  ImageUploadState _uploadState = ImageUploadState.initial;
+  int _uploadPercent = 0;
   bool _openingReceive = true;
 
   @override
@@ -31,7 +36,50 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
     super.dispose();
   }
 
+  Future<void> _selectPhoto() async {
+    final img = await pickImageFromGallery(context);
+    if (img == null) return;
+    _startUpload(img);
+  }
+
+  Future<void> _startUpload(File img) async {
+    setState(() {
+      _photoFile = img;
+      _photoUrl = null;
+      _uploadState = ImageUploadState.uploading;
+      _uploadPercent = 0;
+    });
+    try {
+      final url = await ref.read(cloudinaryRepositoryProvider).uploadImage(
+        img,
+        folder: 'digiluk/parties',
+        onProgress: (percent) => setState(() => _uploadPercent = percent),
+      );
+      setState(() {
+        _photoUrl = url;
+        _uploadState = ImageUploadState.uploaded;
+      });
+    } catch (e) {
+      setState(() => _uploadState = ImageUploadState.error);
+      showSnackBar(context: context, content: 'Upload failed: $e');
+    }
+  }
+
+  void _retryUpload() {
+    if (_photoFile != null) _startUpload(_photoFile!);
+  }
+
+  void _removePhoto() {
+    setState(() {
+      _photoFile = null;
+      _photoUrl = null;
+      _uploadState = ImageUploadState.initial;
+      _uploadPercent = 0;
+    });
+  }
+
   void _submit() {
+    if (_uploadState.isBlocking) return;
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
       showSnackBar(context: context, content: 'Enter name');
@@ -45,7 +93,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
           name: name,
           phone: _phoneCtrl.text.trim(),
           openingBalance: signed,
-          photo: _photo,
+          photoUrl: _photoUrl,
         );
   }
 
@@ -91,19 +139,16 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
             ),
             const SizedBox(height: 20),
             Center(
-              child: GestureDetector(
-                onTap: () async {
-                  final img = await pickImageFromGallery(context);
-                  if (img != null) setState(() => _photo = img);
-                },
-                child: CircleAvatar(
-                  radius: 44,
-                  backgroundColor: digilukPrimary.withOpacity(0.12),
-                  backgroundImage: _photo != null ? FileImage(_photo!) : null,
-                  child: _photo == null
-                      ? const Icon(Icons.camera_alt, color: digilukPrimary)
-                      : null,
-                ),
+              child: ImageUploadPreview(
+                file: _photoFile,
+                uploadedUrl: _photoUrl,
+                state: _uploadState,
+                uploadPercent: _uploadPercent,
+                onSelect: _selectPhoto,
+                onRetry: _retryUpload,
+                onRemove: _removePhoto,
+                shape: BoxShape.circle,
+                circleRadius: 44,
               ),
             ),
             const SizedBox(height: 20),
@@ -182,7 +227,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _submit,
+                onPressed: _uploadState.isBlocking ? null : _submit,
                 icon: const Icon(Icons.check),
                 label: const Text('Save',
                     style: TextStyle(fontSize: 16)),

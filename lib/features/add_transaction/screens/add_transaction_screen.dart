@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/custom_button.dart';
-import 'package:digiluk/common/repositories/cloudinary_repository.dart';
+import 'package:digiluk/common/widgets/image_upload_preview.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/models/transaction_model.dart';
 
@@ -28,7 +29,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final descController = TextEditingController();
   final categoryController = TextEditingController();
   PaymentMethod _paymentMethod = PaymentMethod.cash;
-  File? _proofImage;
+  File? _proofFile;
+  String? _proofUrl;
+  ImageUploadState _proofUploadState = ImageUploadState.initial;
+  int _proofUploadPercent = 0;
   bool _isLoading = false;
 
   final List<String> _incomeCategories = [
@@ -57,12 +61,51 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     super.dispose();
   }
 
-  void _selectProofImage() async {
-    _proofImage = await pickImageFromGallery(context);
-    setState(() {});
+  Future<void> _selectProofImage() async {
+    final img = await pickImageFromGallery(context);
+    if (img == null) return;
+    _startUpload(img);
+  }
+
+  Future<void> _startUpload(File img) async {
+    setState(() {
+      _proofFile = img;
+      _proofUrl = null;
+      _proofUploadState = ImageUploadState.uploading;
+      _proofUploadPercent = 0;
+    });
+    try {
+      final url = await ref.read(cloudinaryRepositoryProvider).uploadImage(
+        img,
+        folder: 'digiluk/groups/${widget.trustId}',
+        onProgress: (percent) => setState(() => _proofUploadPercent = percent),
+      );
+      setState(() {
+        _proofUrl = url;
+        _proofUploadState = ImageUploadState.uploaded;
+      });
+    } catch (e) {
+      setState(() => _proofUploadState = ImageUploadState.error);
+      showSnackBar(context: context, content: 'Upload failed: $e');
+    }
+  }
+
+  void _retryUpload() {
+    if (_proofFile != null) _startUpload(_proofFile!);
+  }
+
+  void _removeProof() {
+    setState(() {
+      _proofFile = null;
+      _proofUrl = null;
+      _proofUploadState = ImageUploadState.initial;
+      _proofUploadPercent = 0;
+    });
   }
 
   void _submitTransaction() async {
+    if (_proofUploadState.isBlocking) return;
+
     String amountStr = amountController.text.trim();
     if (amountStr.isEmpty) {
       showSnackBar(context: context, content: 'Please enter amount');
@@ -77,15 +120,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     setState(() => _isLoading = true);
 
     List<String> proofUrls = [];
-    if (_proofImage != null) {
-      try {
-        String url = await ref
-            .read(cloudinaryRepositoryProvider)
-            .uploadImage(_proofImage!, folder: 'digiluk/groups/${widget.trustId}');
-        proofUrls.add(url);
-      } catch (e) {
-        showSnackBar(context: context, content: 'Failed to upload proof: $e');
-      }
+    if (_proofUrl != null && _proofUrl!.isNotEmpty) {
+      proofUrls.add(_proofUrl!);
     }
 
     ref.read(trustControllerProvider).addTransaction(
@@ -109,8 +145,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final isIncome = widget.type == TransactionType.income;
-    final categories =
-        isIncome ? _incomeCategories : _expenseCategories;
+    final categories = isIncome ? _incomeCategories : _expenseCategories;
     final color = isIncome ? digilukIncome : digilukExpense;
 
     return Scaffold(
@@ -259,39 +294,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _selectProofImage,
-              child: Container(
-                width: double.infinity,
-                height: 120,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: digilukDividerColor,
-                    style: BorderStyle.solid,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _proofImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(_proofImage!, fit: BoxFit.cover),
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add_photo_alternate_outlined,
-                              size: 32, color: digilukGrey.shade400),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Tap to upload bill/receipt',
-                            style: TextStyle(
-                              color: digilukSubTextColor,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
+            ImageUploadPreview(
+              file: _proofFile,
+              uploadedUrl: _proofUrl,
+              state: _proofUploadState,
+              uploadPercent: _proofUploadPercent,
+              onSelect: _selectProofImage,
+              onRetry: _retryUpload,
+              onRemove: _removeProof,
+              placeholderText: 'Tap to upload bill/receipt',
+              height: 120,
             ),
             const SizedBox(height: 32),
             CustomButton(

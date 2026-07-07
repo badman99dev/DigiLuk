@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/features/khata/repository/khata_repository.dart';
@@ -22,7 +21,7 @@ class KhataController {
     required String name,
     required String phone,
     required double openingBalance,
-    File? photo,
+    String? photoUrl,
   }) {
     repository.addParty(
       context: context,
@@ -30,7 +29,7 @@ class KhataController {
       name: name,
       phone: phone,
       openingBalance: openingBalance,
-      photo: photo,
+      photoUrl: photoUrl,
     );
   }
 
@@ -49,7 +48,7 @@ class KhataController {
     required KhataEntryType type,
     required double amount,
     required String note,
-    File? billPhoto,
+    String? billUrl,
   }) {
     repository.addEntry(
       context: context,
@@ -57,7 +56,7 @@ class KhataController {
       type: type,
       amount: amount,
       note: note,
-      billPhoto: billPhoto,
+      billUrl: billUrl,
     );
   }
 

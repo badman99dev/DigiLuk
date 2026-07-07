@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
+import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/features/auth/controller/auth_controller.dart';
 import 'package:digiluk/providers/locale_provider.dart';
 import 'package:digiluk/common/utils/translations.dart';
@@ -36,24 +37,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                CircleAvatar(
+                CloudinaryCircleAvatar(
+                  imageUrl: user.profilePic,
                   radius: 50,
                   backgroundColor: digilukPrimary.withOpacity(0.1),
-                  backgroundImage: user.profilePic.isNotEmpty
-                      ? NetworkImage(user.profilePic)
-                      : null,
-                  child: user.profilePic.isEmpty
-                      ? Text(
-                          user.name.isNotEmpty
-                              ? user.name[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            fontSize: 36,
-                            color: digilukPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : null,
+                  fallback: Text(
+                    user.name.isNotEmpty
+                        ? user.name[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      fontSize: 36,
+                      color: digilukPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(

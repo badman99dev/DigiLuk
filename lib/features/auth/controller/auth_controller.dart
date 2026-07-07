@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/features/auth/repository/auth_repository.dart';
@@ -33,10 +32,10 @@ class AuthController {
   }
 
   void saveUserDataToFirebase(
-      BuildContext context, String name, File? profilePic) {
+      BuildContext context, String name, String? profilePicUrl) {
     authRepository.saveUserDataToFirebase(
       name: name,
-      profilePic: profilePic,
+      profilePicUrl: profilePicUrl,
       ref: ref,
       context: context,
     );

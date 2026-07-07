@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
+import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/common/widgets/transaction_tile.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/models/transaction_model.dart';
@@ -204,14 +205,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     itemCount: txn.proofUrls.length,
                     itemBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: ClipRRect(
+                      child: CloudinaryImage(
+                        imageUrl: txn.proofUrls[index],
+                        width: 80,
+                        height: 80,
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          txn.proofUrls[index],
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
+                        tapForFullScreen: true,
                       ),
                     ),
                   ),

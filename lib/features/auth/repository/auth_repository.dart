@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:digiluk/common/repositories/cloudinary_repository.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/models/user_model.dart';
 import 'package:digiluk/features/auth/screens/user_information_screen.dart';
@@ -98,7 +96,7 @@ class AuthRepository {
 
   void saveUserDataToFirebase({
     required String name,
-    required File? profilePic,
+    String? profilePicUrl,
     required ProviderRef ref,
     required BuildContext context,
   }) async {
@@ -108,14 +106,9 @@ class AuthRepository {
       String? googleEmail = auth.currentUser!.email;
       String? googleDisplayName = auth.currentUser!.displayName;
 
-      String photoUrl = googlePhotoUrl ??
+      String photoUrl = profilePicUrl ??
+          googlePhotoUrl ??
           'https://ui-avatars.com/api/?name=${name.split(' ').join('+')}&background=1A73E8&color=fff&size=256';
-
-      if (profilePic != null) {
-        photoUrl = await ref
-            .read(cloudinaryRepositoryProvider)
-            .uploadImage(profilePic, folder: 'digiluk/profilePic');
-      }
 
       var user = UserModel(
         name: name.isNotEmpty ? name : (googleDisplayName ?? 'User'),

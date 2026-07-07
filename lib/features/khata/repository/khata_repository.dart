@@ -9,7 +9,6 @@ import 'package:digiluk/models/party_model.dart';
 import 'package:digiluk/models/khata_entry_model.dart';
 import 'package:digiluk/models/item_model.dart';
 import 'package:digiluk/models/invoice_model.dart';
-import 'dart:io';
 
 final khataRepositoryProvider = Provider(
   (ref) => KhataRepository(
@@ -44,26 +43,20 @@ class KhataRepository {
     required String name,
     required String phone,
     required double openingBalance,
-    File? photo,
+    String? photoUrl,
   }) async {
     try {
       final uid = _uid;
       if (uid == null) return;
       String partyId = const Uuid().v1();
-      String photoUrl = '';
-      if (photo != null) {
-        photoUrl = await cloudinary.uploadImage(
-          photo,
-          folder: 'digiluk/parties/$uid',
-        );
-      }
+      String finalPhotoUrl = photoUrl ?? '';
       PartyModel party = PartyModel(
         partyId: partyId,
         uid: uid,
         type: type,
         name: name,
         phone: phone,
-        photoUrl: photoUrl,
+        photoUrl: finalPhotoUrl,
         openingBalance: openingBalance,
         balance: openingBalance,
         createdAt: DateTime.now(),
@@ -164,25 +157,19 @@ class KhataRepository {
     required KhataEntryType type,
     required double amount,
     required String note,
-    File? billPhoto,
+    String? billUrl,
   }) async {
     try {
       final uid = _uid;
       if (uid == null) return;
-      String billUrl = '';
-      if (billPhoto != null) {
-        billUrl = await cloudinary.uploadImage(
-          billPhoto,
-          folder: 'digiluk/bills/$uid/$partyId',
-        );
-      }
+      String finalBillUrl = billUrl ?? '';
       await _addEntryInternal(
         uid: uid,
         partyId: partyId,
         type: type,
         amount: amount,
         note: note,
-        billUrl: billUrl,
+        billUrl: finalBillUrl,
       );
       var pDoc = await _partiesCol(uid).doc(partyId).get();
       if (pDoc.exists) {
