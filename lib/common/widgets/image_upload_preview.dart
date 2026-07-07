@@ -41,6 +41,19 @@ class ImageUploadPreview extends StatelessWidget {
 
   bool get _hasImage => file != null || (uploadedUrl != null && uploadedUrl!.isNotEmpty);
 
+  ImageProvider? _circleProvider(double radius) {
+    if (file != null) return FileImage(file!);
+    if (uploadedUrl != null && uploadedUrl!.isNotEmpty) {
+      return CachedNetworkImageProvider(
+        uploadedUrl!.cloudinaryOptimized(
+          width: (radius * 2).toInt(),
+          quality: 'auto',
+        ),
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (shape == BoxShape.circle) {
@@ -59,16 +72,7 @@ class ImageUploadPreview extends StatelessWidget {
           child: CircleAvatar(
             radius: radius,
             backgroundColor: Theme.of(context).primaryColor.withOpacity(0.12),
-            backgroundImage: file != null
-                ? FileImage(file!)
-                : uploadedUrl != null && uploadedUrl!.isNotEmpty
-                    ? CachedNetworkImageProvider(
-                        uploadedUrl!.cloudinaryOptimized(
-                          width: (radius * 2).toInt(),
-                          quality: 'auto',
-                        ),
-                      )
-                    : null,
+            backgroundImage: _circleProvider(radius),
             child: _hasImage
                 ? null
                 : const Icon(Icons.camera_alt, color: Colors.grey),
