@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
@@ -318,6 +320,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (format) => doc.save());
+    final output = await getTemporaryDirectory();
+    final file = File('${output.path}/digiluk_report_${DateTime.now().millisecondsSinceEpoch}.pdf');
+    await file.writeAsBytes(await doc.save());
+    Share.shareXFiles([XFile(file.path)], text: 'DigiLuk Report');
   }
 }
