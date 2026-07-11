@@ -32,28 +32,50 @@ class ShareBalanceScreen extends ConsumerWidget {
         '- DigiLuk';
   }
 
+  String _whatsappPhone(String phone) {
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length == 10) return '91$digits';
+    if (digits.length > 10 && digits.startsWith('91')) return digits;
+    if (digits.length > 10 && digits.startsWith('0')) return '91${digits.substring(1)}';
+    return digits;
+  }
+
   Future<void> _shareWhatsApp(PartyModel party) async {
     final msg = _buildMessage(party);
     final phone = party.phone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (phone.isNotEmpty) {
-      final url = 'https://wa.me/91$phone?text=${Uri.encodeComponent(msg)}';
+    if (phone.isEmpty) {
+      Share.share(msg);
+      return;
+    }
+    final url = 'https://wa.me/${_whatsappPhone(party.phone)}?text=${Uri.encodeComponent(msg)}';
+    try {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        return;
       }
-    } else {
-      Share.share(msg);
+    } catch (e) {
+      debugPrint('WhatsApp launch error: $e');
     }
+    Share.share(msg);
   }
 
   Future<void> _shareSMS(PartyModel party) async {
     final msg = _buildMessage(party);
     final phone = party.phone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (phone.isNotEmpty) {
-      final uri = Uri.parse('sms:$phone?body=${Uri.encodeComponent(msg)}');
-      if (await canLaunchUrl(uri)) await launchUrl(uri);
-    } else {
+    if (phone.isEmpty) {
       Share.share(msg);
+      return;
     }
+    final uri = Uri.parse('sms:$phone?body=${Uri.encodeComponent(msg)}');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+        return;
+      }
+    } catch (e) {
+      debugPrint('SMS launch error: $e');
+    }
+    Share.share(msg);
   }
 
   @override

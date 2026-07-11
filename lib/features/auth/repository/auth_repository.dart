@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -169,13 +171,15 @@ class AuthRepository {
   }
 
   Stream<UserModel?> userDataStream() {
-    if (auth.currentUser == null) return Stream.value(null);
-    return firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .snapshots()
-        .map((event) =>
-            event.exists ? UserModel.fromMap(event.data()!) : null);
+    return auth.authStateChanges().asyncExpand((user) {
+      if (user == null) return Stream.value(null);
+      return firestore
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .map((event) =>
+              event.exists ? UserModel.fromMap(event.data()!) : null);
+    });
   }
 
   Stream<UserModel> userData(String userId) {

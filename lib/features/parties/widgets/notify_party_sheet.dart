@@ -63,34 +63,61 @@ class _NotifyPartyBottomSheetState extends ConsumerState<NotifyPartyBottomSheet>
   bool get _hasPhone => _phone.isNotEmpty;
   bool get _hasEmail => widget.party.email.isNotEmpty;
 
+  String get _whatsappPhone {
+    var digits = _phone;
+    if (digits.length == 10) return '91$digits';
+    if (digits.length > 10 && digits.startsWith('91')) return digits;
+    if (digits.length > 10 && digits.startsWith('0')) return '91${digits.substring(1)}';
+    return digits;
+  }
+
   Future<void> _sendWhatsApp() async {
-    if (!_hasPhone) return;
+    if (!_hasPhone) return _shareGeneric();
     final msg = _messageCtrl.text.trim();
-    final url = 'https://wa.me/91$_phone?text=${Uri.encodeComponent(msg)}';
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    final url = 'https://wa.me/$_whatsappPhone?text=${Uri.encodeComponent(msg)}';
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    } catch (e) {
+      debugPrint('WhatsApp launch error: $e');
     }
+    await _shareGeneric();
   }
 
   Future<void> _sendSMS() async {
-    if (!_hasPhone) return;
+    if (!_hasPhone) return _shareGeneric();
     final msg = _messageCtrl.text.trim();
     final uri = Uri.parse('sms:$_phone?body=${Uri.encodeComponent(msg)}');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+        return;
+      }
+    } catch (e) {
+      debugPrint('SMS launch error: $e');
     }
+    await _shareGeneric();
   }
 
   Future<void> _sendEmail() async {
-    if (!_hasEmail) return;
+    if (!_hasEmail) return _shareGeneric();
     final body = _messageCtrl.text.trim();
     final subject = 'Payment Reminder - \u{20B9}${widget.party.balance.abs().toStringAsFixed(0)}';
     final uri = Uri.parse(
       'mailto:${widget.party.email}?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+        return;
+      }
+    } catch (e) {
+      debugPrint('Email launch error: $e');
     }
+    await _shareGeneric();
   }
 
   Future<void> _shareGeneric() async {
