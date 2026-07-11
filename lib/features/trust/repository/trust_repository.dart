@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:digiluk/common/utils/utils.dart';
+import 'package:digiluk/common/utils/api_client.dart';
 import 'package:digiluk/models/trust_model.dart';
 import 'package:digiluk/models/transaction_model.dart';
 import 'package:digiluk/models/audit_log_model.dart';
@@ -273,14 +274,7 @@ class TrustRepository {
   }
 
   Future<Map<String, dynamic>?> searchUserByEmail(String email) async {
-    try {
-      var query = await _users.where('email', isEqualTo: email).limit(1).get();
-      if (query.docs.isEmpty) return null;
-      return query.docs[0].data() as Map<String, dynamic>;
-    } catch (e) {
-      debugPrint('Search user error: $e');
-      return null;
-    }
+    return await ApiClient.searchUserByEmail(email);
   }
 
   Future<void> addMemberByEmail({
@@ -294,12 +288,9 @@ class TrustRepository {
       var userData = await _getUserData(uid);
       String userName = userData['name'] ?? '';
 
-      var userQuery = await _users
-          .where('email', isEqualTo: email)
-          .limit(1)
-          .get();
+      var newUserData = await ApiClient.searchUserByEmail(email);
 
-      if (userQuery.docs.isEmpty) {
+      if (newUserData == null) {
         showSnackBar(
           context: context,
           content: 'User not found. Ask them to install DigiLuk first.',
@@ -307,13 +298,10 @@ class TrustRepository {
         return;
       }
 
-      var newUserData =
-          userQuery.docs[0].data() as Map<String, dynamic>;
       String newUid = newUserData['uid'] ?? '';
       String newName = newUserData['name'] ?? '';
       String newPic = newUserData['profilePic'] ?? '';
       String newEmail = newUserData['email'] ?? '';
-      String newPhone = newUserData['phoneNumber'] ?? '';
 
       var trustDoc = await _trusts.doc(trustId).get();
       TrustModel trust =
@@ -328,7 +316,7 @@ class TrustRepository {
         uid: newUid,
         name: newName,
         email: newEmail,
-        phoneNumber: newPhone,
+        phoneNumber: '',
         profilePic: newPic,
         role: role,
         joinedAt: DateTime.now(),
