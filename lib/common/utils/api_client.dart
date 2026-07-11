@@ -36,4 +36,124 @@ class ApiClient {
       return null;
     }
   }
+
+  static Future<List<Map<String, dynamic>>> searchGroups(String query) async {
+    try {
+      final token = await _getIdToken();
+      if (token == null) return [];
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/groups/search'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'query': query}),
+      );
+
+      if (response.statusCode == 200) {
+        final list = jsonDecode(response.body) as List;
+        return list.cast<Map<String, dynamic>>();
+      }
+      debugPrint('Search groups API error: ${response.statusCode}');
+      return [];
+    } catch (e) {
+      debugPrint('Search groups error: $e');
+      return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getPublicGroup(String trustId) async {
+    try {
+      final token = await _getIdToken();
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/groups/$trustId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      debugPrint('Get public group error: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      debugPrint('Get public group error: $e');
+      return null;
+    }
+  }
+
+  static Future<bool> requestJoinGroup(String trustId) async {
+    try {
+      final token = await _getIdToken();
+      if (token == null) return false;
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/groups/request-join'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'trustId': trustId}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Request join error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> approveRequest(
+      String trustId, String notificationId, String userId) async {
+    try {
+      final token = await _getIdToken();
+      if (token == null) return false;
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/groups/approve-request'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'trustId': trustId,
+          'notificationId': notificationId,
+          'userId': userId,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Approve request error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> rejectRequest(
+      String trustId, String notificationId, String userId) async {
+    try {
+      final token = await _getIdToken();
+      if (token == null) return false;
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/groups/reject-request'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'trustId': trustId,
+          'notificationId': notificationId,
+          'userId': userId,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Reject request error: $e');
+      return false;
+    }
+  }
 }

@@ -370,6 +370,13 @@ class TrustRepository {
       TrustModel trust =
           TrustModel.fromMap(trustDoc.data() as Map<String, dynamic>);
 
+      if (uid != trust.createdByUid) {
+        showSnackBar(
+            context: context,
+            content: 'Only the owner can change member roles');
+        return;
+      }
+
       List<Map<String, dynamic>> membersMap = trust.members.map((m) {
         if (m.uid == memberUid) {
           return TrustMember(

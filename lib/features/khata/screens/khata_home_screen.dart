@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:digiluk/common/utils/api_client.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/cloudinary_image.dart';
@@ -10,6 +13,7 @@ import 'package:digiluk/features/khata/controller/khata_controller.dart';
 import 'package:digiluk/features/parties/screens/add_party_screen.dart';
 import 'package:digiluk/features/parties/screens/party_detail_screen.dart';
 import 'package:digiluk/features/trust/screens/create_trust_screen.dart';
+import 'package:digiluk/features/trust/screens/public_group_preview_screen.dart';
 import 'package:digiluk/features/trust_home/screens/trust_home_screen.dart';
 import 'package:digiluk/features/trust/controller/trust_controller.dart';
 import 'package:digiluk/models/party_model.dart';
@@ -26,6 +30,74 @@ class KhataHomeScreen extends ConsumerStatefulWidget {
 class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
   String _searchQuery = '';
   PartyType? _filter = PartyType.customer;
+  final _searchController = TextEditingController();
+  List<String> _recentSearches = [];
+  List<Map<String, dynamic>> _exploreResults = [];
+  bool _isSearchingGroups = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentSearches();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString('recent_searches');
+    if (stored != null && mounted) {
+      setState(() {
+        _recentSearches = List<String>.from(jsonDecode(stored));
+      });
+    }
+  }
+
+  Future<void> _saveRecentSearch(String query) async {
+    final prefs = await SharedPreferences.getInstance();
+    _recentSearches.remove(query);
+    _recentSearches.insert(0, query);
+    if (_recentSearches.length > 10) {
+      _recentSearches = _recentSearches.sublist(0, 10);
+    }
+    await prefs.setString('recent_searches', jsonEncode(_recentSearches));
+  }
+
+  Future<void> _clearRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('recent_searches');
+    setState(() => _recentSearches = []);
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() => _searchQuery = query);
+    if (query.isNotEmpty) {
+      _searchGroups(query);
+    } else {
+      setState(() => _exploreResults = []);
+    }
+  }
+
+  Future<void> _searchGroups(String query) async {
+    setState(() => _isSearchingGroups = true);
+    final results = await ApiClient.searchGroups(query);
+    if (mounted) {
+      setState(() {
+        _exploreResults = results;
+        _isSearchingGroups = false;
+      });
+    }
+  }
+
+  void _onSearchSubmitted(String query) {
+    if (query.trim().isEmpty) return;
+    _saveRecentSearch(query.trim());
+    _searchGroups(query);
+  }
 
   void _showAddChoiceSheet() {
     showModalBottomSheet(
@@ -90,17 +162,6 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('DigiLuk'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: _PartySearchDelegate(khataCtrl),
-              );
-            },
-          ),
-        ],
       ),
       body: userAsync.when(
         data: (userData) {
@@ -111,64 +172,76 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
               icon: Icons.person_off,
             );
           }
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(child: _buildSummaryCards(khataCtrl)),
-              SliverToBoxAdapter(child: _buildGroupsStrip(trustCtrl, userData.trustIds)),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: Row(
-                    children: [
-                      const Text('Customers & Suppliers',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      _filterChip('All', null),
-                      const SizedBox(width: 6),
-                      _filterChip('Cust', PartyType.customer),
-                      const SizedBox(width: 6),
-                      _filterChip('Supp', PartyType.supplier),
+          return Column(
+            children: [
+              _buildSearchBar(),
+              if (_searchQuery.isEmpty)
+                _buildRecentSearches()
+              else
+                Expanded(
+                  child: _buildSearchResults(
+                      khataCtrl, trustCtrl, userData.trustIds),
+                ),
+              if (_searchQuery.isEmpty)
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                          child: _buildSummaryCards(khataCtrl)),
+                      SliverToBoxAdapter(child: _buildGroupsStrip(
+                          trustCtrl, userData.trustIds)),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Row(
+                            children: [
+                              const Text('Customers & Suppliers',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
+                              const Spacer(),
+                              _filterChip('All', null),
+                              const SizedBox(width: 6),
+                              _filterChip('Cust', PartyType.customer),
+                              const SizedBox(width: 6),
+                              _filterChip('Supp', PartyType.supplier),
+                            ],
+                          ),
+                        ),
+                      ),
+                      StreamBuilder<List<PartyModel>>(
+                        stream: khataCtrl.getParties(_filter),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SliverFillRemaining(child: Loader());
+                          }
+                          var parties = snapshot.data ?? [];
+                          if (parties.isEmpty) {
+                            return SliverFillRemaining(
+                              child: EmptyState(
+                                title: 'No Parties Yet',
+                                subtitle:
+                                    'Tap + to add your first customer or supplier.',
+                                icon: Icons.people_outline,
+                                onAction: () => _showAddChoiceSheet(),
+                                actionLabel: 'Add Party',
+                              ),
+                            );
+                          }
+                          return SliverList.builder(
+                            itemCount: parties.length,
+                            itemBuilder: (context, index) {
+                              final p = parties[index];
+                              return _partyTile(p);
+                            },
+                          );
+                        },
+                      ),
+                      const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
                     ],
                   ),
                 ),
-              ),
-              StreamBuilder<List<PartyModel>>(
-                stream: khataCtrl.getParties(_filter),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SliverFillRemaining(child: Loader());
-                  }
-                  var parties = snapshot.data ?? [];
-                  if (_searchQuery.isNotEmpty) {
-                    parties = parties
-                        .where((p) => p.name
-                            .toLowerCase()
-                            .contains(_searchQuery.toLowerCase()))
-                        .toList();
-                  }
-                  if (parties.isEmpty) {
-                    return SliverFillRemaining(
-                      child: EmptyState(
-                        title: 'No Parties Yet',
-                        subtitle:
-                            'Tap + to add your first customer or supplier.',
-                        icon: Icons.people_outline,
-                        onAction: () => _showAddChoiceSheet(),
-                        actionLabel: 'Add Party',
-                      ),
-                    );
-                  }
-                  return SliverList.builder(
-                    itemCount: parties.length,
-                    itemBuilder: (context, index) {
-                      final p = parties[index];
-                      return _partyTile(p);
-                    },
-                  );
-                },
-              ),
-              const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
             ],
           );
         },
@@ -179,6 +252,208 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
         onPressed: _showAddChoiceSheet,
         backgroundColor: digilukPrimary,
         child: const Icon(Icons.add, color: digilukWhite),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        onSubmitted: _onSearchSubmitted,
+        decoration: InputDecoration(
+          hintText: 'Search groups & people',
+          prefixIcon: const Icon(Icons.search, color: digilukSubTextColor),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: digilukSubTextColor),
+                  onPressed: () {
+                    _searchController.clear();
+                    _onSearchChanged('');
+                  },
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentSearches() {
+    if (_recentSearches.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('Recent Searches',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: digilukSubTextColor)),
+              const Spacer(),
+              TextButton(
+                onPressed: _clearRecentSearches,
+                child: const Text('Clear',
+                    style: TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            children: _recentSearches.map((q) {
+              return ActionChip(
+                label: Text(q),
+                onPressed: () {
+                  _searchController.text = q;
+                  _onSearchChanged(q);
+                  _onSearchSubmitted(q);
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults(
+      KhataController khataCtrl, TrustController trustCtrl, List<String> trustIds) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCustomerResults(khataCtrl),
+          const SizedBox(height: 16),
+          _buildYourGroupsResults(trustCtrl, trustIds),
+          const SizedBox(height: 16),
+          _buildExploreGroupsResults(),
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerResults(KhataController khataCtrl) {
+    return StreamBuilder<List<PartyModel>>(
+      stream: khataCtrl.getParties(null),
+      builder: (context, snapshot) {
+        final parties = (snapshot.data ?? [])
+            .where((p) => p.name
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()))
+            .toList();
+        if (parties.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Customers',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...parties.map((p) => _partyTile(p)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildYourGroupsResults(
+      TrustController trustCtrl, List<String> trustIds) {
+    if (trustIds.isEmpty) return const SizedBox.shrink();
+    return StreamBuilder<List<TrustModel>>(
+      stream: trustCtrl.getUserTrusts(trustIds),
+      builder: (context, snapshot) {
+        final trusts = (snapshot.data ?? [])
+            .where((t) => t.name
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()))
+            .toList();
+        if (trusts.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Your Groups',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...trusts.map((t) => _searchGroupTile(t.name, t.members.length,
+                t.totalBalance, () {
+              Navigator.pushNamed(context, TrustHomeScreen.routeName,
+                  arguments: t.trustId);
+            })),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildExploreGroupsResults() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('Explore Groups',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            if (_isSearchingGroups)
+              const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_exploreResults.isEmpty && !_isSearchingGroups)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text('No public groups found',
+                style: TextStyle(color: digilukSubTextColor, fontSize: 13)),
+          )
+        else
+          ..._exploreResults.map((g) => _searchGroupTile(
+                g['name'] ?? '',
+                g['memberCount'] ?? 0,
+                (g['totalBalance'] ?? 0).toDouble(),
+                () {
+                  Navigator.pushNamed(context, PublicGroupPreviewScreen.routeName,
+                      arguments: g['trustId']);
+                },
+              )),
+      ],
+    );
+  }
+
+  Widget _searchGroupTile(
+      String name, int memberCount, double balance, VoidCallback onTap) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: digilukAccent.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(Icons.groups, color: digilukAccent, size: 22),
+        ),
+        title: Text(name,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        subtitle: Text('$memberCount members',
+            style: const TextStyle(
+                fontSize: 12, color: digilukSubTextColor)),
+        trailing: Text(
+          '\u{20B9}${balance.toStringAsFixed(0)}',
+          style: const TextStyle(
+              fontSize: 14, fontWeight: FontWeight.bold, color: digilukPrimary),
+        ),
+        onTap: onTap,
       ),
     );
   }

@@ -23,6 +23,7 @@ import 'package:digiluk/features/upi/screens/upi_screen.dart';
 import 'package:digiluk/features/billing/screens/create_invoice_screen.dart';
 import 'package:digiluk/features/stock/screens/stock_screen.dart';
 import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
+import 'package:digiluk/features/trust/screens/public_group_preview_screen.dart';
 import 'package:digiluk/models/party_model.dart';
 import 'package:digiluk/models/transaction_model.dart';
 
@@ -155,6 +156,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case BulkRemindersScreen.routeName:
       return MaterialPageRoute(
         builder: (context) => const BulkRemindersScreen(),
+      );
+    case PublicGroupPreviewScreen.routeName:
+      final trustId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => PublicGroupPreviewScreen(trustId: trustId),
       );
     default:
       return MaterialPageRoute(

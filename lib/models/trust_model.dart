@@ -50,6 +50,7 @@ class TrustModel {
       'memberUids': memberUids,
       'managerUids': managerUids,
       'settings': settings.toMap(),
+      'isPublic': settings.isPublic,
       'totalBalance': totalBalance,
     };
   }
@@ -161,6 +162,7 @@ class TrustMember {
 
 class TrustSettings {
   final String visibility;
+  final bool isPublic;
   final bool requireApproval;
   final int? autoDeleteDays;
   final bool allowProofRequired;
@@ -168,6 +170,7 @@ class TrustSettings {
 
   TrustSettings({
     this.visibility = 'all_members',
+    this.isPublic = true,
     this.requireApproval = false,
     this.autoDeleteDays,
     this.allowProofRequired = false,
@@ -177,6 +180,7 @@ class TrustSettings {
   Map<String, dynamic> toMap() {
     return {
       'visibility': visibility,
+      'isPublic': isPublic,
       'requireApproval': requireApproval,
       'autoDeleteDays': autoDeleteDays,
       'allowProofRequired': allowProofRequired,
@@ -187,6 +191,7 @@ class TrustSettings {
   factory TrustSettings.fromMap(Map<String, dynamic> map) {
     return TrustSettings(
       visibility: map['visibility'] ?? 'all_members',
+      isPublic: map['isPublic'] ?? true,
       requireApproval: map['requireApproval'] ?? false,
       autoDeleteDays: map['autoDeleteDays'],
       allowProofRequired: map['allowProofRequired'] ?? false,

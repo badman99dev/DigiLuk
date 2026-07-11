@@ -19,6 +19,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
   final descController = TextEditingController();
   TrustType _selectedType = TrustType.general;
   String _visibility = 'all_members';
+  bool _isPublic = true;
   bool _requireApproval = false;
   int? _autoDeleteDays;
   bool _isLoading = false;
@@ -48,6 +49,7 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
           type: _selectedType,
           settings: TrustSettings(
             visibility: _visibility,
+            isPublic: _isPublic,
             requireApproval: _requireApproval,
             autoDeleteDays: _autoDeleteDays,
           ),
@@ -145,29 +147,59 @@ class _CreateTrustScreenState extends ConsumerState<CreateTrustScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('All Members'),
-                    value: 'all_members',
-                    groupValue: _visibility,
-                    activeColor: digilukPrimary,
-                    onChanged: (val) => setState(() => _visibility = val!),
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Managers Only'),
-                    value: 'managers_only',
-                    groupValue: _visibility,
-                    activeColor: digilukPrimary,
-                    onChanged: (val) => setState(() => _visibility = val!),
-                  ),
-                ),
-              ],
+            RadioListTile<String>(
+              title: const Text('All Members'),
+              subtitle: const Text('Only group members can see transactions'),
+              value: 'all_members',
+              groupValue: _visibility,
+              activeColor: digilukPrimary,
+              onChanged: (val) => setState(() {
+                _visibility = val!;
+              }),
+            ),
+            RadioListTile<String>(
+              title: const Text('Everyone'),
+              subtitle: const Text('Anyone on DigiLuk can see transactions'),
+              value: 'everyone',
+              groupValue: _visibility,
+              activeColor: digilukPrimary,
+              onChanged: (val) => setState(() {
+                _visibility = val!;
+                _isPublic = true;
+              }),
+            ),
+            RadioListTile<String>(
+              title: const Text('Managers Only'),
+              subtitle: const Text('Only owner and managers can see transactions'),
+              value: 'managers_only',
+              groupValue: _visibility,
+              activeColor: digilukPrimary,
+              onChanged: (val) => setState(() {
+                _visibility = val!;
+                _isPublic = false;
+              }),
             ),
             const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Public (searchable)'),
+              subtitle: Text(
+                _visibility == 'everyone'
+                    ? 'Locked: Public (Everyone can view)'
+                    : _visibility == 'managers_only'
+                        ? 'Locked: Private (Managers only)'
+                        : 'Show this group in public search',
+              ),
+              value: _visibility == 'everyone'
+                  ? true
+                  : _visibility == 'managers_only'
+                      ? false
+                      : _isPublic,
+              activeTrackColor: digilukPrimary.withOpacity(0.3),
+              activeColor: digilukPrimary,
+              onChanged: _visibility == 'all_members'
+                  ? (val) => setState(() => _isPublic = val)
+                  : null,
+            ),
             SwitchListTile(
               title: const Text('Require approval for expenses'),
               subtitle: const Text(
