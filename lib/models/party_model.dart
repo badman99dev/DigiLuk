@@ -84,6 +84,7 @@ class PartyCategory {
   }
 
   PartyCategory copyWith({
+    String? displayName,
     String? giveLabel,
     String? receiveLabel,
     String? receiveTitle,
@@ -92,7 +93,7 @@ class PartyCategory {
   }) {
     return PartyCategory(
       id: id,
-      displayName: displayName,
+      displayName: displayName ?? this.displayName,
       giveLabel: giveLabel ?? this.giveLabel,
       receiveLabel: receiveLabel ?? this.receiveLabel,
       receiveTitle: receiveTitle ?? this.receiveTitle,
