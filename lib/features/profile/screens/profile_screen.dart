@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/cloudinary_image.dart';
@@ -164,11 +167,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       await ref.read(authControllerProvider).signOut();
+                      if (!context.mounted) return;
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/login',
                         (route) => false,
                       );
+                      await Future.delayed(const Duration(milliseconds: 500));
+                      try {
+                        await FirebaseFirestore.instance.clearPersistence();
+                      } catch (e) {
+                        debugPrint('clearPersistence error: $e');
+                      }
+                      try {
+                        await DefaultCacheManager().emptyCache();
+                      } catch (e) {
+                        debugPrint('cache clear error: $e');
+                      }
+                      PaintingBinding.instance.imageCache.clear();
+                      try {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.clear();
+                      } catch (e) {
+                        debugPrint('prefs clear error: $e');
+                      }
                     },
                     icon: const Icon(Icons.logout, color: digilukExpense),
                     label: const Text(
