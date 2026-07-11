@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,7 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
   List<String> _recentSearches = [];
   List<Map<String, dynamic>> _exploreResults = [];
   bool _isSearchingGroups = false;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -76,7 +79,10 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
   void _onSearchChanged(String query) {
     setState(() => _searchQuery = query);
     if (query.isNotEmpty) {
-      _searchGroups(query);
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 500), () {
+        _searchGroups(query);
+      });
     } else {
       setState(() => _exploreResults = []);
     }

@@ -9,7 +9,7 @@ class ApiClient {
   static Future<String?> _getIdToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    return await user.getIdToken(true);
+    return await user.getIdToken();
   }
 
   static Future<Map<String, dynamic>?> searchUserByEmail(String email) async {
