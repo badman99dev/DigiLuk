@@ -39,14 +39,10 @@ class ApiClient {
 
   static Future<List<Map<String, dynamic>>> searchGroups(String query) async {
     try {
-      final token = await _getIdToken();
-      if (token == null) return [];
-
       final response = await http.post(
         Uri.parse('$_baseUrl/api/groups/search'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({'query': query}),
       );
