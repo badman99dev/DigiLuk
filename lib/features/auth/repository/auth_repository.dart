@@ -63,6 +63,9 @@ class AuthRepository {
           await auth.signInWithCredential(credential);
       debugPrint('Firebase auth success: ${userCredential.user?.uid}');
 
+      await userCredential.user!.getIdToken(true);
+      debugPrint('Firebase token refreshed');
+
       bool userExists = await _checkUserExists(userCredential.user!.uid);
       debugPrint('User exists in Firestore: $userExists');
 

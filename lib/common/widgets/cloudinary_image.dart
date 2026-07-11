@@ -156,7 +156,6 @@ class CloudinaryCircleAvatar extends StatelessWidget {
           quality: 'auto',
         ),
       ),
-      child: fallback,
     );
 
     if (tapForFullScreen) {

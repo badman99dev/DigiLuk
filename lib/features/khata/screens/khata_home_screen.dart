@@ -293,7 +293,10 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
         if (trusts.isEmpty) {
           return const SizedBox(
               height: 90,
-              child: Center(child: Loader()));
+              child: Center(
+                  child: Text('No Groups yet',
+                      style:
+                          TextStyle(color: digilukSubTextColor, fontSize: 12))));
         }
         return SizedBox(
           height: 90,
