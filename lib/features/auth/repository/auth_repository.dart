@@ -116,6 +116,7 @@ class AuthRepository {
         profilePic: photoUrl,
         phoneNumber: auth.currentUser!.phoneNumber ?? '',
         email: googleEmail ?? '',
+        businessName: name.isNotEmpty ? name : (googleDisplayName ?? ''),
         trustIds: [],
         createdAt: DateTime.now(),
       );
@@ -152,6 +153,13 @@ class AuthRepository {
     if (auth.currentUser == null) return;
     await firestore.collection('users').doc(auth.currentUser!.uid).update({
       'name': name,
+    });
+  }
+
+  Future<void> updateBusinessName(String businessName) async {
+    if (auth.currentUser == null) return;
+    await firestore.collection('users').doc(auth.currentUser!.uid).update({
+      'businessName': businessName,
     });
   }
 

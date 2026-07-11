@@ -15,7 +15,9 @@ import 'package:digiluk/features/customers/screens/customer_detail_screen.dart';
 import 'package:digiluk/features/customers/screens/add_customer_screen.dart';
 import 'package:digiluk/features/dashboard/screens/groups_list_screen.dart';
 import 'package:digiluk/features/parties/screens/add_party_screen.dart';
+import 'package:digiluk/features/parties/screens/edit_party_screen.dart';
 import 'package:digiluk/features/parties/screens/party_detail_screen.dart';
+import 'package:digiluk/features/parties/screens/party_audit_log_screen.dart';
 import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
 import 'package:digiluk/features/upi/screens/upi_screen.dart';
 import 'package:digiluk/features/billing/screens/create_invoice_screen.dart';
@@ -107,6 +109,19 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       final args = settings.arguments as Map<String, dynamic>;
       return MaterialPageRoute(
         builder: (context) => PartyDetailScreen(
+          partyId: args['partyId'] as String,
+          partyName: args['partyName'] as String,
+        ),
+      );
+    case EditPartyScreen.routeName:
+      final party = settings.arguments as PartyModel;
+      return MaterialPageRoute(
+        builder: (context) => EditPartyScreen(party: party),
+      );
+    case PartyAuditLogScreen.routeName:
+      final args = settings.arguments as Map<String, dynamic>;
+      return MaterialPageRoute(
+        builder: (context) => PartyAuditLogScreen(
           partyId: args['partyId'] as String,
           partyName: args['partyName'] as String,
         ),

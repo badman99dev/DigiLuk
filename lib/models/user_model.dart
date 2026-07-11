@@ -4,6 +4,7 @@ class UserModel {
   final String profilePic;
   final String phoneNumber;
   final String email;
+  final String businessName;
   final List<String> trustIds;
   final String languagePreference;
   final bool biometricEnabled;
@@ -15,6 +16,7 @@ class UserModel {
     required this.profilePic,
     required this.phoneNumber,
     this.email = '',
+    this.businessName = '',
     required this.trustIds,
     this.languagePreference = 'en',
     this.biometricEnabled = false,
@@ -28,6 +30,7 @@ class UserModel {
       'profilePic': profilePic,
       'phoneNumber': phoneNumber,
       'email': email,
+      'businessName': businessName,
       'trustIds': trustIds,
       'languagePreference': languagePreference,
       'biometricEnabled': biometricEnabled,
@@ -42,6 +45,7 @@ class UserModel {
       profilePic: map['profilePic'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       email: map['email'] ?? '',
+      businessName: map['businessName'] ?? '',
       trustIds: List<String>.from(map['trustIds'] ?? []),
       languagePreference: map['languagePreference'] ?? 'en',
       biometricEnabled: map['biometricEnabled'] ?? false,
@@ -54,6 +58,7 @@ class UserModel {
   UserModel copyWith({
     String? name,
     String? profilePic,
+    String? businessName,
     List<String>? trustIds,
     String? languagePreference,
     bool? biometricEnabled,
@@ -64,6 +69,7 @@ class UserModel {
       profilePic: profilePic ?? this.profilePic,
       phoneNumber: phoneNumber,
       email: email,
+      businessName: businessName ?? this.businessName,
       trustIds: trustIds ?? this.trustIds,
       languagePreference: languagePreference ?? this.languagePreference,
       biometricEnabled: biometricEnabled ?? this.biometricEnabled,

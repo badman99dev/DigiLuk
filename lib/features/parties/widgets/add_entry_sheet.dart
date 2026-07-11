@@ -117,7 +117,7 @@ class _AddEntrySheetState extends ConsumerState<AddEntrySheet> {
             children: [
               Expanded(
                 child: ChoiceChip(
-                  label: const Text('Gave \u{20B9}'),
+                  label: Text(widget.party.resolvedCategory.giveLabel),
                   selected: _selected == KhataEntryType.give,
                   selectedColor: digilukExpense,
                   labelStyle: TextStyle(
@@ -133,7 +133,7 @@ class _AddEntrySheetState extends ConsumerState<AddEntrySheet> {
               const SizedBox(width: 8),
               Expanded(
                 child: ChoiceChip(
-                  label: const Text('Got \u{20B9}'),
+                  label: Text(widget.party.resolvedCategory.receiveLabel),
                   selected: _selected == KhataEntryType.receive,
                   selectedColor: digilukIncome,
                   labelStyle: TextStyle(
@@ -213,7 +213,9 @@ class _AddEntrySheetState extends ConsumerState<AddEntrySheet> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: Text(
-                _selected == KhataEntryType.give ? 'Save Gave' : 'Save Got',
+                _selected == KhataEntryType.give
+                    ? widget.party.resolvedCategory.giveLabel
+                    : widget.party.resolvedCategory.receiveLabel,
                 style: const TextStyle(color: digilukWhite, fontSize: 16),
               ),
             ),

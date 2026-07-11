@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/models/party_model.dart';
+import 'package:digiluk/models/party_audit_log_model.dart';
 import 'package:digiluk/models/khata_entry_model.dart';
 import 'package:digiluk/models/item_model.dart';
 import 'package:digiluk/models/invoice_model.dart';
@@ -42,8 +43,13 @@ class KhataRepository {
     required PartyType type,
     required String name,
     required String phone,
+    required String email,
     required double openingBalance,
     String? photoUrl,
+    String category = 'shopkeeper',
+    String customCategoryName = '',
+    String giveLabel = '',
+    String receiveLabel = '',
   }) async {
     try {
       final uid = _uid;
@@ -56,7 +62,12 @@ class KhataRepository {
         type: type,
         name: name,
         phone: phone,
+        email: email,
         photoUrl: finalPhotoUrl,
+        category: category,
+        customCategoryName: customCategoryName,
+        giveLabel: giveLabel,
+        receiveLabel: receiveLabel,
         openingBalance: openingBalance,
         balance: openingBalance,
         createdAt: DateTime.now(),
@@ -79,6 +90,120 @@ class KhataRepository {
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }
+  }
+
+  Future<void> updateParty({
+    required BuildContext context,
+    required PartyModel oldParty,
+    required String name,
+    required String phone,
+    required String email,
+    String? photoUrl,
+    required String category,
+    required String customCategoryName,
+    required String giveLabel,
+    required String receiveLabel,
+    required String editedByName,
+  }) async {
+    try {
+      final uid = _uid;
+      if (uid == null) return;
+
+      final newParty = oldParty.copyWith(
+        name: name,
+        phone: phone,
+        email: email,
+        photoUrl: photoUrl,
+        category: category,
+        customCategoryName: customCategoryName,
+        giveLabel: giveLabel,
+        receiveLabel: receiveLabel,
+      );
+
+      await _partiesCol(uid).doc(oldParty.partyId).update(newParty.toMap());
+
+      await _logChanges(
+        uid: uid,
+        partyId: oldParty.partyId,
+        oldParty: oldParty,
+        newParty: newParty,
+        editedByName: editedByName,
+      );
+
+      showSnackBar(context: context, content: 'Profile updated');
+      Navigator.pop(context);
+    } catch (e) {
+      showSnackBar(context: context, content: e.toString());
+    }
+  }
+
+  Future<void> _logChanges({
+    required String uid,
+    required String partyId,
+    required PartyModel oldParty,
+    required PartyModel newParty,
+    required String editedByName,
+  }) async {
+    final now = DateTime.now();
+    final changes = <Map<String, String>>[
+      if (oldParty.name != newParty.name)
+        {'field': 'Name', 'old': oldParty.name, 'new': newParty.name},
+      if (oldParty.phone != newParty.phone)
+        {'field': 'Phone', 'old': oldParty.phone, 'new': newParty.phone},
+      if (oldParty.email != newParty.email)
+        {'field': 'Email', 'old': oldParty.email, 'new': newParty.email},
+      if (oldParty.category != newParty.category)
+        {'field': 'Category', 'old': oldParty.category, 'new': newParty.category},
+      if (oldParty.customCategoryName != newParty.customCategoryName)
+        {'field': 'Custom Category Name', 'old': oldParty.customCategoryName, 'new': newParty.customCategoryName},
+      if (oldParty.giveLabel != newParty.giveLabel)
+        {'field': 'Give Label', 'old': oldParty.giveLabel, 'new': newParty.giveLabel},
+      if (oldParty.receiveLabel != newParty.receiveLabel)
+        {'field': 'Receive Label', 'old': oldParty.receiveLabel, 'new': newParty.receiveLabel},
+      if (oldParty.photoUrl != newParty.photoUrl)
+        {'field': 'Photo', 'old': oldParty.photoUrl, 'new': newParty.photoUrl ?? ''},
+    ];
+
+    for (final change in changes) {
+      await _partiesCol(uid)
+          .doc(partyId)
+          .collection('auditLogs')
+          .doc(const Uuid().v1())
+          .set(PartyAuditLogModel(
+            logId: const Uuid().v1(),
+            partyId: partyId,
+            uid: uid,
+            fieldName: change['field']!,
+            oldValue: change['old']!,
+            newValue: change['new']!,
+            editedBy: uid,
+            editedByName: editedByName,
+            timestamp: now,
+          ).toMap());
+    }
+  }
+
+  Future<void> _logPartyDeletion({
+    required String uid,
+    required String partyId,
+    required String partyName,
+    required String editedByName,
+  }) async {
+    await _partiesCol(uid)
+        .doc(partyId)
+        .collection('auditLogs')
+        .doc(const Uuid().v1())
+        .set(PartyAuditLogModel(
+          logId: const Uuid().v1(),
+          partyId: partyId,
+          uid: uid,
+          fieldName: 'Party Deleted',
+          oldValue: partyName,
+          newValue: '',
+          editedBy: uid,
+          editedByName: editedByName,
+          timestamp: DateTime.now(),
+        ).toMap());
   }
 
   Stream<List<PartyModel>> getParties(PartyType? typeFilter) {
@@ -106,10 +231,18 @@ class KhataRepository {
   Future<void> deleteParty({
     required BuildContext context,
     required String partyId,
+    required String partyName,
+    required String editedByName,
   }) async {
     try {
       final uid = _uid;
       if (uid == null) return;
+      await _logPartyDeletion(
+        uid: uid,
+        partyId: partyId,
+        partyName: partyName,
+        editedByName: editedByName,
+      );
       var entries =
           await _partiesCol(uid).doc(partyId).collection('entries').get();
       for (var d in entries.docs) {
@@ -121,6 +254,19 @@ class KhataRepository {
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }
+  }
+
+  Stream<List<PartyAuditLogModel>> getPartyAuditLogs(String partyId) {
+    final uid = _uid;
+    if (uid == null) return const Stream.empty();
+    return _partiesCol(uid)
+        .doc(partyId)
+        .collection('auditLogs')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((event) => event.docs
+            .map((d) => PartyAuditLogModel.fromMap(d.data() as Map<String, dynamic>))
+            .toList());
   }
 
   // ===== KHATA ENTRY CRUD =====

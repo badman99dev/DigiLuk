@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digiluk/features/khata/repository/khata_repository.dart';
 import 'package:digiluk/models/party_model.dart';
+import 'package:digiluk/models/party_audit_log_model.dart';
 import 'package:digiluk/models/khata_entry_model.dart';
 import 'package:digiluk/models/item_model.dart';
 import 'package:digiluk/models/invoice_model.dart';
@@ -20,16 +21,54 @@ class KhataController {
     required PartyType type,
     required String name,
     required String phone,
+    required String email,
     required double openingBalance,
     String? photoUrl,
+    String category = 'shopkeeper',
+    String customCategoryName = '',
+    String giveLabel = '',
+    String receiveLabel = '',
   }) {
     repository.addParty(
       context: context,
       type: type,
       name: name,
       phone: phone,
+      email: email,
       openingBalance: openingBalance,
       photoUrl: photoUrl,
+      category: category,
+      customCategoryName: customCategoryName,
+      giveLabel: giveLabel,
+      receiveLabel: receiveLabel,
+    );
+  }
+
+  void updateParty({
+    required BuildContext context,
+    required PartyModel oldParty,
+    required String name,
+    required String phone,
+    required String email,
+    String? photoUrl,
+    required String category,
+    required String customCategoryName,
+    required String giveLabel,
+    required String receiveLabel,
+    required String editedByName,
+  }) {
+    repository.updateParty(
+      context: context,
+      oldParty: oldParty,
+      name: name,
+      phone: phone,
+      email: email,
+      photoUrl: photoUrl,
+      category: category,
+      customCategoryName: customCategoryName,
+      giveLabel: giveLabel,
+      receiveLabel: receiveLabel,
+      editedByName: editedByName,
     );
   }
 
@@ -39,8 +78,16 @@ class KhataController {
   Stream<PartyModel> partyStream(String partyId) =>
       repository.partyStream(partyId);
 
-  void deleteParty(BuildContext context, String partyId) =>
-      repository.deleteParty(context: context, partyId: partyId);
+  void deleteParty(BuildContext context, String partyId, String partyName, String editedByName) =>
+      repository.deleteParty(
+        context: context,
+        partyId: partyId,
+        partyName: partyName,
+        editedByName: editedByName,
+      );
+
+  Stream<List<PartyAuditLogModel>> getPartyAuditLogs(String partyId) =>
+      repository.getPartyAuditLogs(partyId);
 
   void addEntry({
     required BuildContext context,

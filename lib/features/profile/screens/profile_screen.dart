@@ -140,7 +140,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       leading: const Icon(Icons.edit, color: digilukPrimary),
                       title: const Text('Edit Profile'),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _showEditNameDialog(context, user.name),
+                      onTap: () => _showEditProfileDialog(context, user.name, user.businessName),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.business, color: digilukPrimary),
+                      title: const Text('Business Name'),
+                      subtitle: Text(user.businessName.isNotEmpty ? user.businessName : 'Not set'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showEditBusinessNameDialog(context, user.businessName),
                     ),
                     ListTile(
                       leading: const Icon(Icons.info_outline,
@@ -228,15 +235,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _showEditNameDialog(BuildContext context, String currentName) {
+  void _showEditProfileDialog(BuildContext context, String currentName, String currentBusinessName) {
     final nameController = TextEditingController(text: currentName);
+    final businessController = TextEditingController(text: currentBusinessName);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Name'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(hintText: 'Enter your name'),
+        title: const Text('Edit Profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(hintText: 'Enter your name'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: businessController,
+              decoration: const InputDecoration(
+                hintText: 'Enter business name',
+                helperText: 'Used in customer messages',
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -246,10 +267,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           TextButton(
             onPressed: () {
               String newName = nameController.text.trim();
+              String newBusinessName = businessController.text.trim();
               if (newName.isNotEmpty) {
                 ref.read(authControllerProvider).updateProfileName(newName);
+              }
+              if (newBusinessName.isNotEmpty) {
+                ref.read(authControllerProvider).updateBusinessName(newBusinessName);
+              }
+              Navigator.pop(context);
+              showSnackBar(context: context, content: 'Profile updated');
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditBusinessNameDialog(BuildContext context, String currentBusinessName) {
+    final controller = TextEditingController(text: currentBusinessName);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Business Name'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Enter business name',
+            helperText: 'Used in customer messages',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              String businessName = controller.text.trim();
+              if (businessName.isNotEmpty) {
+                ref.read(authControllerProvider).updateBusinessName(businessName);
                 Navigator.pop(context);
-                showSnackBar(context: context, content: 'Name updated');
+                showSnackBar(context: context, content: 'Business name updated');
               }
             },
             child: const Text('Save'),

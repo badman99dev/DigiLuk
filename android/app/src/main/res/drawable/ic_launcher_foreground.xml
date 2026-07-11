@@ -4,10 +4,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Khata book cover -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,30 L72,42 L72,66 L54,78 L36,66 L36,42 Z" />
+        android:pathData="M30,28 L30,78 C30,82 33,84 37,84 L78,84 C82,84 84,82 84,78 L84,28 C84,24 82,22 78,22 L37,22 C33,22 30,24 30,28 Z M40,78 L40,28 L74,28 L74,78 L40,78 Z" />
+    <!-- Book pages -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,40 L64,46 L64,58 L54,64 L44,58 L44,46 Z" />
+        android:pathData="M36,78 L78,78 L78,82 L36,82 C34,82 32,80 32,78 L32,30 C32,32 34,34 36,34 L36,78 Z" />
+    <!-- Bookmark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,28 L52,58 L58,52 L64,58 L64,28 Z" />
 </vector>

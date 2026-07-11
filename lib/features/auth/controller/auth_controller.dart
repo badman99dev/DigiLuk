@@ -53,6 +53,10 @@ class AuthController {
     return authRepository.updateProfileName(name);
   }
 
+  Future<void> updateBusinessName(String businessName) {
+    return authRepository.updateBusinessName(businessName);
+  }
+
   Future<void> signOut() {
     return authRepository.signOut();
   }

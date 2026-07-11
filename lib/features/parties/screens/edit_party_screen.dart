@@ -6,40 +6,38 @@ import 'package:digiluk/common/utils/colors.dart';
 import 'package:digiluk/common/utils/contact_picker.dart';
 import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/image_upload_preview.dart';
+import 'package:digiluk/features/auth/controller/auth_controller.dart';
 import 'package:digiluk/features/khata/controller/khata_controller.dart';
 import 'package:digiluk/models/party_model.dart';
 
-class AddPartyScreen extends ConsumerStatefulWidget {
-  static const String routeName = '/add-party';
-  final PartyType initialType;
-  const AddPartyScreen({super.key, this.initialType = PartyType.customer});
+class EditPartyScreen extends ConsumerStatefulWidget {
+  static const String routeName = '/edit-party';
+  final PartyModel party;
+
+  const EditPartyScreen({super.key, required this.party});
 
   @override
-  ConsumerState<AddPartyScreen> createState() => _AddPartyScreenState();
+  ConsumerState<EditPartyScreen> createState() => _EditPartyScreenState();
 }
 
-class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
-  late PartyType _type = widget.initialType;
-  final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _balanceCtrl = TextEditingController();
-  final _customNameCtrl = TextEditingController();
-  final _giveLabelCtrl = TextEditingController();
-  final _receiveLabelCtrl = TextEditingController();
+class _EditPartyScreenState extends ConsumerState<EditPartyScreen> {
+  late final _nameCtrl = TextEditingController(text: widget.party.name);
+  late final _phoneCtrl = TextEditingController(text: widget.party.phone);
+  late final _emailCtrl = TextEditingController(text: widget.party.email);
+  late final _customNameCtrl = TextEditingController(text: widget.party.customCategoryName);
+  late final _giveLabelCtrl = TextEditingController(text: widget.party.giveLabel);
+  late final _receiveLabelCtrl = TextEditingController(text: widget.party.receiveLabel);
   File? _photoFile;
   String? _photoUrl;
   ImageUploadState _uploadState = ImageUploadState.initial;
   int _uploadPercent = 0;
-  String _category = PartyCategory.defaults.first.id;
-  bool _openingReceive = true;
+  late String _category = widget.party.category;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _emailCtrl.dispose();
-    _balanceCtrl.dispose();
     _customNameCtrl.dispose();
     _giveLabelCtrl.dispose();
     _receiveLabelCtrl.dispose();
@@ -95,75 +93,43 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
       showSnackBar(context: context, content: 'Enter name');
       return;
     }
-    double bal = double.tryParse(_balanceCtrl.text.trim()) ?? 0;
-    double signed = _openingReceive ? bal.abs() : -bal.abs();
 
-    final category = PartyCategory.getById(_category);
     final isCustom = _category == 'custom';
+    final userAsync = ref.read(userDataAuthProvider);
+    final user = userAsync.value;
 
-    ref.read(khataControllerProvider).addParty(
+    ref.read(khataControllerProvider).updateParty(
           context: context,
-          type: _type,
+          oldParty: widget.party,
           name: name,
           phone: _phoneCtrl.text.trim(),
           email: _emailCtrl.text.trim(),
-          openingBalance: signed,
-          photoUrl: _photoUrl,
+          photoUrl: _photoUrl ?? widget.party.photoUrl,
           category: _category,
           customCategoryName: isCustom ? _customNameCtrl.text.trim() : '',
           giveLabel: isCustom ? _giveLabelCtrl.text.trim() : '',
           receiveLabel: isCustom ? _receiveLabelCtrl.text.trim() : '',
+          editedByName: user?.name ?? 'User',
         );
   }
 
   @override
   Widget build(BuildContext context) {
     final isCustom = _category == 'custom';
-    final category = PartyCategory.getById(_category);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_type == PartyType.customer ? 'Add Customer' : 'Add Supplier'),
+        title: const Text('Edit Profile'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Text('Customer'),
-                    selected: _type == PartyType.customer,
-                    selectedColor: digilukPrimary,
-                    labelStyle: TextStyle(
-                        color: _type == PartyType.customer
-                            ? digilukWhite
-                            : digilukTextColor),
-                    onSelected: (v) => setState(() => _type = PartyType.customer),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Text('Supplier'),
-                    selected: _type == PartyType.supplier,
-                    selectedColor: digilukAccent,
-                    labelStyle: TextStyle(
-                        color: _type == PartyType.supplier
-                            ? digilukWhite
-                            : digilukTextColor),
-                    onSelected: (v) => setState(() => _type = PartyType.supplier),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
             Center(
               child: ImageUploadPreview(
                 file: _photoFile,
-                uploadedUrl: _photoUrl,
+                uploadedUrl: _photoUrl ?? widget.party.photoUrl,
                 state: _uploadState,
                 uploadPercent: _uploadPercent,
                 onSelect: _selectPhoto,
@@ -246,7 +212,7 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
               controller: _phoneCtrl,
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
-                labelText: 'Phone (optional)',
+                labelText: 'Phone',
                 hintText: 'Enter phone number',
                 prefixIcon: const Icon(Icons.phone_outlined),
                 suffixIcon: IconButton(
@@ -266,70 +232,18 @@ class _AddPartyScreenState extends ConsumerState<AddPartyScreen> {
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                labelText: 'Email (optional)',
+                labelText: 'Email',
                 hintText: 'Enter email',
                 prefixIcon: Icon(Icons.email_outlined),
               ),
             ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _balanceCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: 'Opening Balance (optional)',
-                hintText: '0',
-                prefixText: '\u{20B9} ',
-                prefixStyle: const TextStyle(
-                    fontWeight: FontWeight.bold, color: digilukPrimary),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if ((_balanceCtrl.text.trim().isNotEmpty) &&
-                double.tryParse(_balanceCtrl.text.trim()) != null &&
-                double.parse(_balanceCtrl.text.trim()) > 0)
-              Row(
-                children: [
-                  Expanded(
-                    child: ChoiceChip(
-                      label: Text(_type == PartyType.customer
-                          ? category.receiveTitle
-                          : category.payTitle),
-                      selected: _openingReceive,
-                      selectedColor: digilukIncome,
-                      labelStyle: TextStyle(
-                          color: _openingReceive
-                              ? digilukWhite
-                              : digilukTextColor),
-                      onSelected: (v) =>
-                          setState(() => _openingReceive = true),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ChoiceChip(
-                      label: Text(_type == PartyType.customer
-                          ? category.payTitle
-                          : category.receiveTitle),
-                      selected: !_openingReceive,
-                      selectedColor: digilukExpense,
-                      labelStyle: TextStyle(
-                          color: !_openingReceive
-                              ? digilukWhite
-                              : digilukTextColor),
-                      onSelected: (v) =>
-                          setState(() => _openingReceive = false),
-                    ),
-                  ),
-                ],
-              ),
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _uploadState.isBlocking ? null : _submit,
                 icon: const Icon(Icons.check),
-                label: const Text('Save',
+                label: const Text('Save Changes',
                     style: TextStyle(fontSize: 16)),
                 style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14)),

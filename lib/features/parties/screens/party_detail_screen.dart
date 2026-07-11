@@ -5,11 +5,14 @@ import 'package:digiluk/common/utils/utils.dart';
 import 'package:digiluk/common/widgets/cloudinary_image.dart';
 import 'package:digiluk/common/widgets/empty_state.dart';
 import 'package:digiluk/common/widgets/loader.dart';
+import 'package:digiluk/features/auth/controller/auth_controller.dart';
 import 'package:digiluk/features/khata/controller/khata_controller.dart';
+import 'package:digiluk/features/parties/screens/edit_party_screen.dart';
+import 'package:digiluk/features/parties/screens/party_audit_log_screen.dart';
 import 'package:digiluk/features/parties/widgets/add_entry_sheet.dart';
-import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
-import 'package:digiluk/features/upi/screens/upi_screen.dart';
+import 'package:digiluk/features/parties/widgets/notify_party_sheet.dart';
 import 'package:digiluk/features/billing/screens/create_invoice_screen.dart';
+import 'package:digiluk/features/reminders/screens/share_balance_screen.dart';
 import 'package:digiluk/models/khata_entry_model.dart';
 import 'package:digiluk/models/party_model.dart';
 
@@ -44,6 +47,51 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
     );
   }
 
+  void _showNotifySheet(PartyModel party) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => NotifyPartyBottomSheet(party: party),
+    );
+  }
+
+  void _confirmDelete(PartyModel party) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Party?'),
+        content: const Text(
+          'This party and all its transactions will be permanently deleted. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              final user = ref.read(userDataAuthProvider).value;
+              ref.read(khataControllerProvider).deleteParty(
+                    context,
+                    widget.partyId,
+                    party.name,
+                    user?.name ?? 'User',
+                  );
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: digilukExpense),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ctrl = ref.watch(khataControllerProvider);
@@ -51,6 +99,18 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
       appBar: AppBar(
         title: Text(widget.partyName),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Audit Log',
+            onPressed: () => Navigator.pushNamed(
+              context,
+              PartyAuditLogScreen.routeName,
+              arguments: {
+                'partyId': widget.partyId,
+                'partyName': widget.partyName,
+              },
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.receipt_long),
             tooltip: 'Create Bill',
@@ -68,11 +128,11 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
           PopupMenuButton(
             itemBuilder: (c) => [
               const PopupMenuItem(
-                value: 'upi',
+                value: 'edit',
                 child: Row(children: [
-                  Icon(Icons.qr_code, size: 20),
+                  Icon(Icons.edit, size: 20),
                   SizedBox(width: 8),
-                  Text('UPI Payment'),
+                  Text('Edit Profile'),
                 ]),
               ),
               const PopupMenuItem(
@@ -86,11 +146,20 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
               ),
             ],
             onSelected: (v) {
-              if (v == 'upi') {
-                Navigator.pushNamed(context, UPIScreen.routeName,
-                    arguments: {'partyId': widget.partyId});
+              if (v == 'edit') {
+                ctrl.partyStream(widget.partyId).first.then((party) {
+                  if (mounted) {
+                    Navigator.pushNamed(
+                      context,
+                      EditPartyScreen.routeName,
+                      arguments: party,
+                    );
+                  }
+                });
               } else if (v == 'delete') {
-                ctrl.deleteParty(context, widget.partyId);
+                ctrl.partyStream(widget.partyId).first.then((party) {
+                  if (mounted) _confirmDelete(party);
+                });
               }
             },
           ),
@@ -101,6 +170,7 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
         builder: (context, pSnap) {
           if (!pSnap.hasData) return const Loader();
           final party = pSnap.data!;
+          final category = party.resolvedCategory;
           final isReceive = (party.balance > 0 &&
                   party.type == PartyType.customer) ||
               (party.balance < 0 && party.type == PartyType.supplier);
@@ -147,7 +217,7 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      isReceive ? 'You\'ll Receive' : 'You\'ll Pay',
+                      isReceive ? category.receiveTitle : category.payTitle,
                       style: const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                     const SizedBox(height: 4),
@@ -163,6 +233,22 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                       Text(party.phone,
                           style: const TextStyle(color: Colors.white70, fontSize: 12)),
                     ],
+                    if (party.email.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(party.email,
+                          style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    ],
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () => _showNotifySheet(party),
+                      icon: const Icon(Icons.notifications_active, size: 18),
+                      label: const Text('Notify'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: color,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -188,6 +274,9 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                         final e = entries[i];
                         final eIsGive = e.type == KhataEntryType.give;
                         final eColor = eIsGive ? digilukExpense : digilukIncome;
+                        final label = eIsGive
+                            ? category.giveLabel.toUpperCase()
+                            : category.receiveLabel.toUpperCase();
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
@@ -223,7 +312,7 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    eIsGive ? 'GAVE' : 'GOT',
+                                    label,
                                     style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w600,
@@ -296,35 +385,47 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
           );
         },
       ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'got',
-            backgroundColor: digilukIncome,
-            tooltip: 'Got \u{20B9}',
-            onPressed: () {
-              final p = ref.read(khataControllerProvider);
-              p.partyStream(widget.partyId).first.then((party) {
-                if (mounted) _showAddEntrySheet(KhataEntryType.receive, party);
-              });
-            },
-            child: const Icon(Icons.add, color: digilukWhite),
-          ),
-          const SizedBox(width: 8),
-          FloatingActionButton.small(
-            heroTag: 'gave',
-            backgroundColor: digilukExpense,
-            tooltip: 'Gave \u{20B9}',
-            onPressed: () {
-              final p = ref.read(khataControllerProvider);
-              p.partyStream(widget.partyId).first.then((party) {
-                if (mounted) _showAddEntrySheet(KhataEntryType.give, party);
-              });
-            },
-            child: const Icon(Icons.remove, color: digilukWhite),
-          ),
-        ],
+      floatingActionButton: StreamBuilder<PartyModel>(
+        stream: ctrl.partyStream(widget.partyId),
+        builder: (context, snap) {
+          final party = snap.data;
+          if (party == null) return const SizedBox();
+          final category = party.resolvedCategory;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FloatingActionButton.extended(
+                heroTag: 'receive',
+                backgroundColor: digilukIncome,
+                tooltip: category.receiveLabel,
+                onPressed: () {
+                  final p = ref.read(khataControllerProvider);
+                  p.partyStream(widget.partyId).first.then((party) {
+                    if (mounted) _showAddEntrySheet(KhataEntryType.receive, party);
+                  });
+                },
+                icon: const Icon(Icons.add, color: digilukWhite),
+                label: Text(category.receiveLabel,
+                    style: const TextStyle(color: digilukWhite, fontSize: 12)),
+              ),
+              const SizedBox(width: 8),
+              FloatingActionButton.extended(
+                heroTag: 'give',
+                backgroundColor: digilukExpense,
+                tooltip: category.giveLabel,
+                onPressed: () {
+                  final p = ref.read(khataControllerProvider);
+                  p.partyStream(widget.partyId).first.then((party) {
+                    if (mounted) _showAddEntrySheet(KhataEntryType.give, party);
+                  });
+                },
+                icon: const Icon(Icons.remove, color: digilukWhite),
+                label: Text(category.giveLabel,
+                    style: const TextStyle(color: digilukWhite, fontSize: 12)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
