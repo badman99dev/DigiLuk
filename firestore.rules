@@ -1,120 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-    function uidInMembers(members, uid) {
-      return (members.size() > 0 && members[0].uid == uid) ||
-             (members.size() > 1 && members[1].uid == uid) ||
-             (members.size() > 2 && members[2].uid == uid) ||
-             (members.size() > 3 && members[3].uid == uid) ||
-             (members.size() > 4 && members[4].uid == uid) ||
-             (members.size() > 5 && members[5].uid == uid) ||
-             (members.size() > 6 && members[6].uid == uid) ||
-             (members.size() > 7 && members[7].uid == uid) ||
-             (members.size() > 8 && members[8].uid == uid) ||
-             (members.size() > 9 && members[9].uid == uid) ||
-             (members.size() > 10 && members[10].uid == uid) ||
-             (members.size() > 11 && members[11].uid == uid) ||
-             (members.size() > 12 && members[12].uid == uid) ||
-             (members.size() > 13 && members[13].uid == uid) ||
-             (members.size() > 14 && members[14].uid == uid) ||
-             (members.size() > 15 && members[15].uid == uid) ||
-             (members.size() > 16 && members[16].uid == uid) ||
-             (members.size() > 17 && members[17].uid == uid) ||
-             (members.size() > 18 && members[18].uid == uid) ||
-             (members.size() > 19 && members[19].uid == uid) ||
-             (members.size() > 20 && members[20].uid == uid) ||
-             (members.size() > 21 && members[21].uid == uid) ||
-             (members.size() > 22 && members[22].uid == uid) ||
-             (members.size() > 23 && members[23].uid == uid) ||
-             (members.size() > 24 && members[24].uid == uid) ||
-             (members.size() > 25 && members[25].uid == uid) ||
-             (members.size() > 26 && members[26].uid == uid) ||
-             (members.size() > 27 && members[27].uid == uid) ||
-             (members.size() > 28 && members[28].uid == uid) ||
-             (members.size() > 29 && members[29].uid == uid) ||
-             (members.size() > 30 && members[30].uid == uid) ||
-             (members.size() > 31 && members[31].uid == uid) ||
-             (members.size() > 32 && members[32].uid == uid) ||
-             (members.size() > 33 && members[33].uid == uid) ||
-             (members.size() > 34 && members[34].uid == uid) ||
-             (members.size() > 35 && members[35].uid == uid) ||
-             (members.size() > 36 && members[36].uid == uid) ||
-             (members.size() > 37 && members[37].uid == uid) ||
-             (members.size() > 38 && members[38].uid == uid) ||
-             (members.size() > 39 && members[39].uid == uid) ||
-             (members.size() > 40 && members[40].uid == uid) ||
-             (members.size() > 41 && members[41].uid == uid) ||
-             (members.size() > 42 && members[42].uid == uid) ||
-             (members.size() > 43 && members[43].uid == uid) ||
-             (members.size() > 44 && members[44].uid == uid) ||
-             (members.size() > 45 && members[45].uid == uid) ||
-             (members.size() > 46 && members[46].uid == uid) ||
-             (members.size() > 47 && members[47].uid == uid) ||
-             (members.size() > 48 && members[48].uid == uid) ||
-             (members.size() > 49 && members[49].uid == uid) ||
-             (members.size() > 50 && members[50].uid == uid) ||
-             (members.size() > 51 && members[51].uid == uid) ||
-             (members.size() > 52 && members[52].uid == uid) ||
-             (members.size() > 53 && members[53].uid == uid) ||
-             (members.size() > 54 && members[54].uid == uid) ||
-             (members.size() > 55 && members[55].uid == uid) ||
-             (members.size() > 56 && members[56].uid == uid) ||
-             (members.size() > 57 && members[57].uid == uid) ||
-             (members.size() > 58 && members[58].uid == uid) ||
-             (members.size() > 59 && members[59].uid == uid) ||
-             (members.size() > 60 && members[60].uid == uid) ||
-             (members.size() > 61 && members[61].uid == uid) ||
-             (members.size() > 62 && members[62].uid == uid) ||
-             (members.size() > 63 && members[63].uid == uid) ||
-             (members.size() > 64 && members[64].uid == uid) ||
-             (members.size() > 65 && members[65].uid == uid) ||
-             (members.size() > 66 && members[66].uid == uid) ||
-             (members.size() > 67 && members[67].uid == uid) ||
-             (members.size() > 68 && members[68].uid == uid) ||
-             (members.size() > 69 && members[69].uid == uid) ||
-             (members.size() > 70 && members[70].uid == uid) ||
-             (members.size() > 71 && members[71].uid == uid) ||
-             (members.size() > 72 && members[72].uid == uid) ||
-             (members.size() > 73 && members[73].uid == uid) ||
-             (members.size() > 74 && members[74].uid == uid) ||
-             (members.size() > 75 && members[75].uid == uid) ||
-             (members.size() > 76 && members[76].uid == uid) ||
-             (members.size() > 77 && members[77].uid == uid) ||
-             (members.size() > 78 && members[78].uid == uid) ||
-             (members.size() > 79 && members[79].uid == uid) ||
-             (members.size() > 80 && members[80].uid == uid) ||
-             (members.size() > 81 && members[81].uid == uid) ||
-             (members.size() > 82 && members[82].uid == uid) ||
-             (members.size() > 83 && members[83].uid == uid) ||
-             (members.size() > 84 && members[84].uid == uid) ||
-             (members.size() > 85 && members[85].uid == uid) ||
-             (members.size() > 86 && members[86].uid == uid) ||
-             (members.size() > 87 && members[87].uid == uid) ||
-             (members.size() > 88 && members[88].uid == uid) ||
-             (members.size() > 89 && members[89].uid == uid) ||
-             (members.size() > 90 && members[90].uid == uid) ||
-             (members.size() > 91 && members[91].uid == uid) ||
-             (members.size() > 92 && members[92].uid == uid) ||
-             (members.size() > 93 && members[93].uid == uid) ||
-             (members.size() > 94 && members[94].uid == uid) ||
-             (members.size() > 95 && members[95].uid == uid) ||
-             (members.size() > 96 && members[96].uid == uid) ||
-             (members.size() > 97 && members[97].uid == uid) ||
-             (members.size() > 98 && members[98].uid == uid) ||
-             (members.size() > 99 && members[99].uid == uid);
-    }
     function isMemberFromData(data) {
-      return isAuthenticated() && (
-        request.auth.uid in data.memberUids ||
-        uidInMembers(data.members, request.auth.uid)
-      );
+      return isAuthenticated() && request.auth.uid in data.memberUids;
     }
     function isAdminFromData(data) {
       return isAuthenticated() && isMemberFromData(data) && (
@@ -132,17 +26,12 @@ service cloud.firestore {
       return isAdminFromData(trustData(trustId));
     }
 
-    // Users
     match /users/{userId} {
       allow read, write: if isOwner(userId);
     }
-
-    // User profile / merchant details
     match /users/{userId}/profile/{document=**} {
       allow read, write: if isOwner(userId);
     }
-
-    // Khata parties
     match /users/{userId}/parties/{partyId} {
       allow read, write, create, delete: if isOwner(userId);
     }
@@ -178,7 +67,6 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
-    // Trusts / Groups
     match /trusts/{trustId} {
       allow create: if isAuthenticated();
       allow read: if isMemberFromData(resource.data);
