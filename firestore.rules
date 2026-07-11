@@ -1,0 +1,141 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isAdminOfTrust(trustId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/trusts/$(trustId)/members/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/trusts/$(trustId)/members/$(request.auth.uid)).data.role == 'admin';
+    }
+    function isMemberOfTrust(trustId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/trusts/$(trustId)/members/$(request.auth.uid));
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // User profile / merchant details
+    match /users/{userId}/profile/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Khata parties
+    match /users/{userId}/parties/{partyId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/parties/{partyId}/entries/{entryId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/parties/{partyId}/auditLogs/{auditLogId} {
+      allow read, create: if isOwner(userId);
+      allow update, delete: if false;
+    }
+    match /users/{userId}/items/{itemId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/invoices/{invoiceId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/bills/{billId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/reports/{reportId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/stocks/{stockId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/transactions/{transactionId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, write, create, delete: if isOwner(userId);
+    }
+    match /users/{userId}/settings/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Trusts / Groups
+    match /trusts/{trustId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write: if isAdminOfTrust(trustId) ||
+        (isAuthenticated() && resource.data.creatorUid == request.auth.uid);
+      allow create: if isAuthenticated();
+    }
+    match /trusts/{trustId}/members/{memberId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write: if isAdminOfTrust(trustId) || memberId == request.auth.uid;
+      allow create: if isAdminOfTrust(trustId) ||
+        (isAuthenticated() && get(/databases/$(database)/documents/trusts/$(trustId)).data.creatorUid == request.auth.uid);
+    }
+    match /trusts/{trustId}/transactions/{transactionId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create, delete: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.addedBy);
+    }
+    match /trusts/{trustId}/groups/{groupId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create, delete: if isAdminOfTrust(trustId);
+    }
+    match /trusts/{trustId}/notifications/{notificationId} {
+      allow read: if isMemberOfTrust(trustId) && request.auth.uid == resource.data.userId;
+      allow create: if isAdminOfTrust(trustId);
+      allow update: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.userId);
+      allow delete: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.userId);
+    }
+    match /trusts/{trustId}/chats/{messageId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow create: if isMemberOfTrust(trustId);
+      allow update, delete: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.senderId);
+    }
+    match /trusts/{trustId}/audits/{auditId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow create: if isMemberOfTrust(trustId);
+      allow update, delete: if false;
+    }
+    match /trusts/{trustId}/announcements/{announcementId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow create, update, delete: if isAdminOfTrust(trustId);
+    }
+    match /trusts/{trustId}/roles/{roleId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create, delete: if isAdminOfTrust(trustId);
+    }
+    match /trusts/{trustId}/documents/{documentId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create, delete: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.uploadedBy);
+    }
+    match /trusts/{trustId}/events/{eventId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create, delete: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.createdBy);
+    }
+    match /trusts/{trustId}/votes/{voteId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create: if isMemberOfTrust(trustId);
+      allow delete: if isAdminOfTrust(trustId) ||
+        (isMemberOfTrust(trustId) && request.auth.uid == resource.data.voterId);
+    }
+    match /trusts/{trustId}/reports/{reportId} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write, create, delete: if isAdminOfTrust(trustId);
+    }
+    match /trusts/{trustId}/settings/{document=**} {
+      allow read: if isMemberOfTrust(trustId);
+      allow write: if isAdminOfTrust(trustId);
+    }
+  }
+}
