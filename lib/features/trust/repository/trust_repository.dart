@@ -339,7 +339,16 @@ class TrustRepository {
           trust.members.map((m) => m.toMap()).toList();
       membersMap.add(newMember.toMap());
 
-      await _trusts.doc(trustId).update({'members': membersMap});
+      final memberUids = [...trust.memberUids, newUid];
+      final managerUids = role == MemberRole.manager
+          ? [...trust.managerUids, newUid]
+          : trust.managerUids;
+
+      await _trusts.doc(trustId).update({
+        'members': membersMap,
+        'memberUids': memberUids,
+        'managerUids': managerUids,
+      });
       await _users.doc(newUid).update({
         'trustIds': FieldValue.arrayUnion([trustId]),
       });
@@ -388,7 +397,17 @@ class TrustRepository {
         return m.toMap();
       }).toList();
 
-      await _trusts.doc(trustId).update({'members': membersMap});
+      var managerUids = trust.managerUids;
+      if (newRole == MemberRole.manager && !managerUids.contains(memberUid)) {
+        managerUids = [...managerUids, memberUid];
+      } else if (newRole == MemberRole.member && managerUids.contains(memberUid)) {
+        managerUids = managerUids.where((uid) => uid != memberUid).toList();
+      }
+
+      await _trusts.doc(trustId).update({
+        'members': membersMap,
+        'managerUids': managerUids,
+      });
 
       await _addAuditLog(
         trustId: trustId,

@@ -11,6 +11,8 @@ class TrustModel {
   final String createdByUid;
   final DateTime createdAt;
   final List<TrustMember> members;
+  final List<String> memberUids;
+  final List<String> managerUids;
   final TrustSettings settings;
   final double totalBalance;
 
@@ -23,9 +25,17 @@ class TrustModel {
     required this.createdByUid,
     required this.createdAt,
     required this.members,
+    List<String>? memberUids,
+    List<String>? managerUids,
     required this.settings,
     this.totalBalance = 0,
-  });
+  })  : memberUids = memberUids ?? members.map((m) => m.uid).toList(),
+        managerUids = managerUids ??
+            members
+                .where((m) =>
+                    m.role == MemberRole.creator || m.role == MemberRole.manager)
+                .map((m) => m.uid)
+                .toList();
 
   Map<String, dynamic> toMap() {
     return {
@@ -37,12 +47,18 @@ class TrustModel {
       'createdByUid': createdByUid,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'members': members.map((m) => m.toMap()).toList(),
+      'memberUids': memberUids,
+      'managerUids': managerUids,
       'settings': settings.toMap(),
       'totalBalance': totalBalance,
     };
   }
 
   factory TrustModel.fromMap(Map<String, dynamic> map) {
+    final members = (map['members'] as List<dynamic>?)
+            ?.map((m) => TrustMember.fromMap(m as Map<String, dynamic>))
+            .toList() ??
+        [];
     return TrustModel(
       trustId: map['trustId'] ?? '',
       name: map['name'] ?? '',
@@ -56,10 +72,17 @@ class TrustModel {
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         map['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
       ),
-      members: (map['members'] as List<dynamic>?)
-              ?.map((m) => TrustMember.fromMap(m as Map<String, dynamic>))
-              .toList() ??
-          [],
+      members: members,
+      memberUids: map['memberUids'] != null
+          ? List<String>.from(map['memberUids'])
+          : members.map((m) => m.uid).toList(),
+      managerUids: map['managerUids'] != null
+          ? List<String>.from(map['managerUids'])
+          : members
+              .where((m) =>
+                  m.role == MemberRole.creator || m.role == MemberRole.manager)
+              .map((m) => m.uid)
+              .toList(),
       settings: TrustSettings.fromMap(
         map['settings'] as Map<String, dynamic>? ?? {},
       ),
