@@ -174,9 +174,13 @@ class AuthRepository {
   }
 
   Stream<UserModel?> userDataStream() {
-    return auth.authStateChanges().asyncExpand((user) {
-      if (user == null) return Stream.value(null);
-      return firestore
+    return auth.authStateChanges().asyncExpand((user) async* {
+      if (user == null) {
+        yield null;
+        return;
+      }
+      await user.getIdToken(true);
+      yield* firestore
           .collection('users')
           .doc(user.uid)
           .snapshots()

@@ -167,13 +167,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       await ref.read(authControllerProvider).signOut();
+                      ref.invalidate(userDataAuthProvider);
                       if (!context.mounted) return;
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/login',
                         (route) => false,
                       );
-                      await Future.delayed(const Duration(milliseconds: 500));
+                      await Future.delayed(const Duration(milliseconds: 300));
                       try {
                         await FirebaseFirestore.instance.clearPersistence();
                       } catch (e) {
