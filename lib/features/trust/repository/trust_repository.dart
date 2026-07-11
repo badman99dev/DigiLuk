@@ -88,10 +88,9 @@ class TrustRepository {
   }
 
   Stream<List<TrustModel>> getUserTrusts(List<String> trustIds) {
-    if (trustIds.isEmpty) {
-      return Stream.value([]);
-    }
-    return _trusts.where('trustId', whereIn: trustIds).snapshots().map(
+    final uid = auth.currentUser?.uid;
+    if (uid == null) return Stream.value([]);
+    return _trusts.where('memberUids', arrayContains: uid).snapshots().map(
           (event) => event.docs
               .map((doc) =>
                   TrustModel.fromMap(doc.data() as Map<String, dynamic>))

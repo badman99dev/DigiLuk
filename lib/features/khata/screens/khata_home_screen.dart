@@ -289,6 +289,18 @@ class _KhataHomeScreenState extends ConsumerState<KhataHomeScreen> {
     return StreamBuilder<List<TrustModel>>(
       stream: trustCtrl.getUserTrusts(trustIds),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(height: 90, child: Center(child: Loader()));
+        }
+        if (snapshot.hasError) {
+          return SizedBox(
+            height: 90,
+            child: Center(
+              child: Text('Error loading groups',
+                  style: TextStyle(color: Colors.red.shade400, fontSize: 12)),
+            ),
+          );
+        }
         final trusts = snapshot.data ?? [];
         if (trusts.isEmpty) {
           return const SizedBox(
